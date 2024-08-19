@@ -7,24 +7,33 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * 仿 ForkJoinPool 思路实现 IO密集型任务分治
+ */
 public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
 
     default Logger logger() {
         return LoggerFactory.getLogger(this.getClass());
     }
 
+    // 线程池
     ExecutorService executor();
 
+    // 其实索引
     Integer startIndex();
 
+    // 结束索引
     Integer endIndex();
 
+    // 可以处理的资源数量
     Integer capacity();
 
+    // 是否需要拆分
     default Boolean needsFork() {
         return (endIndex() - startIndex()) > capacity();
     }
 
+    // 要在线程内执行的任务的起始点
     default Result compute() {
         var logger = logger();
 
@@ -35,6 +44,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
             join(futures);
             // 返回值用以计算任务成功数量
             logger.info("{} - 等待返回 ...", Thread.currentThread().getName());
+            // 合并子任务返回结果
             var result = Arrays.stream(futures)
                     .map(CompletableFuture::join)
                     .reduce(Result.ZERO, Result::reduce);
@@ -46,8 +56,10 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
         }
     }
 
+    // 执行具体的任务操作由子类实现
     Result doCompute();
 
+    // 任务拆分
     @SuppressWarnings("unchecked")
     default CompletableFuture<Result>[] fork() {
         var tasks = doFork();
@@ -66,14 +78,21 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
         return new CompletableFuture[]{leftFuture, rightFuture};
     }
 
+    // 具体拆分算法由子类实现
     IOForkJoinTask<T>[] doFork();
 
+    // 当前任务阻塞等待子任务的返回结果
     @SuppressWarnings("unchecked")
     default void join(CompletableFuture<Result>... args) {
         CompletableFuture.allOf(args)
                 .join();
     }
 
+    /**
+     * 返回的结果封装
+     * @param successful    成功处理的资源数量
+     * @param byteSize      成功处理的字节数
+     */
     record Result(Integer successful, Long byteSize) {
 
         public static final Result ZERO = new Result(0, 0L);

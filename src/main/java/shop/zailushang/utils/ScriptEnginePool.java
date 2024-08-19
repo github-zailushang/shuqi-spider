@@ -11,10 +11,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * JS 引擎池
- * 为何使用它？
- * 因为调用js引擎执行解密操作，是处于线程环境下的操作（因在下载章节内容时，开启了异步）
- * 但js不允许多线程访问，使用一个 JS 引擎对象去加锁串行的话，效率太慢，故在初始化时 缓存1000个 JS引擎对象来执行解密操作
+ * JS 引擎池：用缓存池思想，避免重复的创建和销毁资源
+ * 这里为何使用它呢？
+ * 因为调用js引擎执行解密操作，是处于线程环境下的操作，在下载章节内容时，开启了异步，后续的一系列连续操作均为异步操作(thenCompose)
+ * 但js是单线程语言，多线程访问会报错，一开始我是使用一个 JS 引擎对象去加锁串行，但效率实在太慢
+ * 故在此初始化 缓存1000个 JS引擎对象来执行解密操作，各用各的，互不干扰
  */
 public class ScriptEnginePool {
 
@@ -63,5 +64,4 @@ public class ScriptEnginePool {
             throw new RuntimeException(e);
         }
     }
-
 }
