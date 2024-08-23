@@ -10,7 +10,6 @@ import shop.zailushang.entity.Content;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -90,7 +89,7 @@ public interface Parser<T, R> extends Task<T, R> {
                                             throw new RuntimeException(e);
                                         }
                                     })
-                                    .collect(Collectors.toList())
+                                    .toList()
                     );
                 } catch (Exception e) {
                     throw new RuntimeException(e);

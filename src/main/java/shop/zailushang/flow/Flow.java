@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -40,7 +39,7 @@ public interface Flow<T, R> {
     static <T> List<Flow<T, T>> startParallel(Integer size) {
         return IntStream.range(0, size)
                 .mapToObj(unused -> Flow.<T>identity())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 每条flow 由多个 task#then 组装而成，而 flow 和 flow 之间的 then，实则也是用 头结点的 then 来组装
@@ -90,7 +89,6 @@ public interface Flow<T, R> {
                                 )
                                 .map(merge -> {
                                     try {
-                                        // 设置
                                         // 这里设置每章的 skip 跳过字节数，因为用了 recode,final 类设计，无setter可用，只能我转我自己，多了 skip : atoLong.getAndAdd(size)
                                         long size = Files.size(merge.filePath());
                                         return new Chapter.Chapter4Merge(merge.orderId(), merge.folderPath(), merge.filePath(), merge.bookName(), atoLong.getAndAdd(size));
@@ -98,7 +96,7 @@ public interface Flow<T, R> {
                                         throw new RuntimeException(e);
                                     }
                                 })
-                                .collect(Collectors.toList());
+                                .toList();
                         return CompletableFuture.completedFuture(sources);
                     };
         }

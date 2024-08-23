@@ -19,7 +19,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     // 线程池
     ExecutorService executor();
 
-    // 其实索引
+    // 起始索引
     Integer startIndex();
 
     // 结束索引
