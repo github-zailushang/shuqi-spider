@@ -31,6 +31,7 @@ flowchart TB
     -.-> Formatter([Formatter：执行文本格式化])
     -.-> Writer([Writer：执行文件写入])
 ```
+
 ```mermaid
 sequenceDiagram
 	title Flow调用时序图
@@ -42,7 +43,6 @@ sequenceDiagram
 	participant Formatter
 	participant Writer
 
-    %% 描述调用和激活状态
     Flow->>+Reader: read()
     Reader-->>-Flow: 返回响应文本
     
@@ -73,6 +73,8 @@ flowchart TD
     fork([task#fork])
     noFork([task#doCompute])
     join([task#join])
+    task1([执行任务拆分：task1])
+    task2([执行任务拆分：task2])
     taskEnd((结束))
 
     taskStart --提交异步任务--> compute
@@ -80,8 +82,8 @@ flowchart TD
     needsFork --是--> fork
     needsFork --否--> noFork
     noFork --计算任务结果直接返回--> taskEnd
-    fork --> task1([执行任务拆分：task1])
-    fork --> task2([执行任务拆分：task2])
+    fork --> task1
+    fork --> task2
     task1 --提交子任务，并阻塞等待子任务返回--> join
     task2 --提交子任务，并阻塞等待子任务返回--> join
     join -.-> taskStart

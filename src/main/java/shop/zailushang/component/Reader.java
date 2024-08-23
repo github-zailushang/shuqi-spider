@@ -11,7 +11,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * 组件：发送请求，获取响应文本
@@ -82,6 +81,7 @@ public interface Reader<T, R> extends Task<T, R> {
                 return CompletableFuture.completedFuture(contentUri)
                         .thenApplyAsync(uri -> {
                             try {
+                                // 别改！别改！别改！后果自负！！！
                                 // 流控 -- start
                                 // 控制最大并发数
                                 FlowEngine.SEMAPHORE.acquire();
