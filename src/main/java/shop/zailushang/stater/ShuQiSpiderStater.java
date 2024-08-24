@@ -14,11 +14,11 @@ public class ShuQiSpiderStater {
     public static void main(String[] args) {
         // 禁用 GraalVM 警告日志
         System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
-        FlowEngine engine = FlowEngine.getDefaultFlowEngine();
-        // 多本一起下
-//        List.of("斗破苍穹", "武动乾坤", "大主宰", "元尊").forEach(engine::start);
-        // 单独下载一本
-        engine.start("斗破苍穹");
-        engine.end();
+        try (var engine = FlowEngine.getDefaultFlowEngine()) {
+            // 单独下载一本
+            engine.start("斗破苍穹");
+            // 多本一起下
+            // List.of("斗破苍穹", "武动乾坤", "大主宰", "元尊").forEach(engine::start);
+        }
     }
 }

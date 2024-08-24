@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
-public class FlowEngine {
+public class FlowEngine implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
     // io密集型任务线程池 ：核心线程数 =  cpu核心数 /（1-阻塞系数）
     public static final ExecutorService IO_TASK_EXECUTOR = new ThreadPoolExecutor(
@@ -64,5 +64,10 @@ public class FlowEngine {
     public void end() {
         FlowEngine.IO_TASK_EXECUTOR.shutdown();
         logger.info("{} - 流程结束", Thread.currentThread().getName());
+    }
+
+    @Override
+    public void close() {
+        end();
     }
 }

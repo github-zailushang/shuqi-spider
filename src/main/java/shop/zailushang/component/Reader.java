@@ -95,7 +95,7 @@ public interface Reader<T, R> extends Task<T, R> {
                                 FlowEngine.SEMAPHORE.release();
                             }
                         }, FlowEngine.IO_TASK_EXECUTOR)
-                        // 很low的传参方式，但后续执行下载时需要需要这些参数，只能由此往后传递
+                        // 很low的传参方式，但后续执行下载时需要这些参数，只能由此往后传递
                         // 拼接后续流程所需参数：书名/章节序号.txt 作为章节文件名
                         // 取值时是逆序，后来居上
                         .thenApply(CompletableFuture::join)

@@ -26,7 +26,8 @@ public interface Flow<T, R> {
     }
 
     /**
-     * 其中 t -> CompletableFuture.completedFuture(t) 对应 flow 的头结点： 对传入的类型包装成 CompletableFuture并返回
+     * 其中 CompletableFuture::completedFuture 等价于 t -> CompletableFuture.completedFuture(t)
+     * 对应 flow 的头结点： 对传入的类型包装成 CompletableFuture并返回
      */
     static <T> Flow<T, T> identity() {
         return () -> CompletableFuture::completedFuture;
