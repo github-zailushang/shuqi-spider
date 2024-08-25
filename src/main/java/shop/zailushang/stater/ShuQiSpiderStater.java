@@ -9,6 +9,7 @@ import java.util.List;
  * 下载VIP内容时，接口返回为空，对应在代码中则是：在使用 Decoder 进行解密时会出错，比如：大主宰，只能下载前20章免费章节
  * 要下载VIP章节，你得有VIP账号，至于鉴权，要么是cookie，要么其他特殊请求头
  * 调试一下，在 {@link shop.zailushang.component.Reader#read0 } 中添加对应请求头即可，本人没有VIP账号就不试了
+ * 下载文件默认写入地址： D:/书名/书名.txt
  */
 public class ShuQiSpiderStater {
     public static void main(String[] args) {

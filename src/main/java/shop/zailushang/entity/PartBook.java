@@ -13,16 +13,16 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * IOForkJoinTask 实际子类
  *
- * @param sources 要处理的资源
- * @param startIndex 起始索引
- * @param endIndex 结束索引
- * @param capacity 可以处理的资源数
+ * @param sources     要处理的资源
+ * @param startIndex  起始索引
+ * @param endIndex    结束索引
+ * @param capacity    可以处理的资源数
  * @param totalLength 要处理的资源的总字节数
  *                    对应为电子书所有章节加起来的总字节数，因为要使用 RandomAccessFile 配合多线程实现文件复制
  *                    使用时，一定要先设置文件的总大小，再移动文件指针，否则肯定乱序、覆盖写等问题
- *                     {@link RandomAccessFile#setLength} 设置文件大小
- *                     {@link RandomAccessFile#seek} 移动文件指针
- * @param executor 线程池
+ *                    {@link RandomAccessFile#setLength} 设置文件大小
+ *                    {@link RandomAccessFile#seek} 移动文件指针
+ * @param executor    线程池
  */
 public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, Integer capacity,
                        Long totalLength, ExecutorService executor) implements IOForkJoinTask<PartBook> {
@@ -32,10 +32,11 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
         var logger = logger();
 
         logger.info(String.format("%s - 准备合并 [%s ~ %s]", Thread.currentThread().getName(), startIndex, endIndex));
-        // 所在的文件夹路径 每个对象的路径均一样
+        // 获取由本线程处理的首个资源
         var start = sources.get(startIndex - 1);
         var bookName = start.bookName();
         var folderPath = start.folderPath();
+        // 跳过字节数 ： 比如本线程负责合并 50 ~ 120，则在写入文件时，先设置跳过前 49 章的总字节数
         var skip = start.skip();
 
         // Chapter4Merge mapTo FileChannel
@@ -63,7 +64,8 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
             var atoLong = new AtomicLong(0);
             sourceChannels.forEach(sourceChannel -> {
                 try (sourceChannel) {
-//                    long byteSize = sourceChannel.transferTo(0, sourceChannel.size(), targetFileChannel);//使用下面的直接映射内存方式复制文件更高效
+                    // 弃用，使用下面的直接映射内存方式复制文件更高效
+                    // long byteSize = sourceChannel.transferTo(0, sourceChannel.size(), targetFileChannel);
                     int byteSize = targetFileChannel.write(sourceChannel.map(FileChannel.MapMode.READ_ONLY, 0, sourceChannel.size()));
                     atoLong.addAndGet(byteSize);
                 } catch (Exception e) {

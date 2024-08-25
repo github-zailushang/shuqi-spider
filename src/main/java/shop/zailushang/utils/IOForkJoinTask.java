@@ -9,6 +9,10 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * 仿 ForkJoinPool 思路实现 IO密集型任务分治
+ * 为何使用它？
+ * Stream并行流，ForkJoinPool 同理，针对的场景是 CPU密集型任务（Stream并行流内部使用的就是ForkJoinPool）
+ * 文件写入属于IO密集型任务，明显不在此列，不是不能用，而是不合适，故而，文件IO、网络IO，我们应该使用自定义的IO型线程池
+ * 再将任务拆分算法封装、提交线程池代码按照 ForkJoinPool 思想封装，终有此工具类
  */
 public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
 
