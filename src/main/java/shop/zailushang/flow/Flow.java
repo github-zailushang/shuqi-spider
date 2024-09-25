@@ -72,13 +72,13 @@ public interface Flow<T, R> {
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Download>, List<Chapter.Chapter4Merge>> contentListFlow() {
-            final var contentedFlow = Flow.Flows.contentFlow();
+            final var contentFlow = Flow.Flows.contentFlow();
             return () ->
                     downloads -> {
                         var contentFlowStarts = Flow.<Chapter.Chapter4Download>startParallel(downloads.size());
                         final var parallelFlows = contentFlowStarts.stream()
                                 //.limit(30) // 仅下载前 30章： 用于测试时，控制下载章节数量
-                                .map(flow -> flow.then(contentedFlow))
+                                .map(flow -> flow.then(contentFlow))
                                 .toList();
 
                         var atoLong = new AtomicLong(0);
@@ -109,7 +109,7 @@ public interface Flow<T, R> {
                     .then(Parser.Parsers.contentParser())
                     .then(Decoder.Decoders.contentDecoder())
                     .then(Formatter.Formatters.contentFormatter())
-                    .then(Writer.Writes.fileWrite());
+                    .then(Writer.Writes.fileWriter());
         }
 
         // 完整 合并文件 的流程组装

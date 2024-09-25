@@ -8,14 +8,16 @@ import java.util.concurrent.*;
 public class FlowEngine implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
     // io密集型任务线程池 ：核心线程数 =  cpu核心数 /（1-阻塞系数）
-    public static final ExecutorService IO_TASK_EXECUTOR = new ThreadPoolExecutor(
-            (int) (Runtime.getRuntime().availableProcessors() / (1 - 0.9)),
-            (int) (Runtime.getRuntime().availableProcessors() / (1 - 0.9)) * 2,
-            10,
-            TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(2000),
-            new ThreadPoolExecutor.AbortPolicy()
-    );
+//    public static final ExecutorService IO_TASK_EXECUTOR = new ThreadPoolExecutor(
+//            (int) (Runtime.getRuntime().availableProcessors() / (1 - 0.9)),
+//            (int) (Runtime.getRuntime().availableProcessors() / (1 - 0.9)) * 2,
+//            10,
+//            TimeUnit.SECONDS,
+//            new ArrayBlockingQueue<>(2000),
+//            new ThreadPoolExecutor.AbortPolicy()
+//    );
+    // 既然用JDK21，为什么不试试虚拟线程
+    public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     // cpu密集型任务线程池，核心线程数 = cpu核心数 + 1
     @SuppressWarnings("unused")

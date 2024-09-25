@@ -30,7 +30,8 @@ public interface Selector<T, R> extends Task<T, R> {
         public static Selector<String, String> bidSelector() {
             // bid 所在的元素地址
             // <span class="btn js-addShelf disable" data-bid="53258" data-clog="shelf-shelf$$bid=53258">+书架</span>
-            final var bidXpath = "/html/body/div/div[3]/div[2]/div/div/div[2]/span[2]";
+            // 网站调整了 bid 元素位置
+            final var bidXpath = "/html/body/div[1]/div[3]/div/div[4]/div/span[2]";
 
             return bidDoc -> {
                 logger.info("{} - 执行选择bid元素操作", Thread.currentThread().getName());

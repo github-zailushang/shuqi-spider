@@ -27,7 +27,7 @@ public interface Writer extends Task<Chapter.Chapter4Save, Chapter.Chapter4Merge
 
         // 将章节内容打印在控制台，调试时用
         @SuppressWarnings("unused")
-        public static Writer consoleWrite() {
+        public static Writer consoleWriter() {
             return chapter -> {
                 logger.info("{} - 执行文件写入操作[控制台]", Thread.currentThread().getName());
                 var part = "-".repeat(15);
@@ -39,7 +39,7 @@ public interface Writer extends Task<Chapter.Chapter4Save, Chapter.Chapter4Merge
         }
 
         // 将章节内容写入文件
-        public static Writer fileWrite() {
+        public static Writer fileWriter() {
             // 默认写入盘符: D盘
             final var basePath = "D:";
             return chapter -> {
