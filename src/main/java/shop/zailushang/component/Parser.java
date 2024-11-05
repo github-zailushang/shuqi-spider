@@ -54,8 +54,9 @@ public interface Parser<T, R> extends Task<T, R> {
         // 章节列表解析器
         public static Parser<String, List<Chapter.Chapter4Download>> chapterParser() {
             // 从最内层的json对象上移除这些属性，因为后续用不上，如果不手动移除，则要求在转换的对象上有这些属性，否则转json会失败
+            // updated  2024年11月5日 网站新增属性添加至忽略列表 [dateOpen chapterLockDesc vipPriorityRead]
             var ignoreProperties = List.of("payStatus", "chapterPrice", "wordCount", "chapterUpdateTime",
-                    "shortContUrlSuffix", "oriPrice", "shelf", "isBuy", "isFreeRead");
+                    "shortContUrlSuffix", "oriPrice", "shelf", "isBuy", "isFreeRead", "dateOpen", "chapterLockDesc", "vipPriorityRead");
             // 提取属性向后传递，构建最终对象，在最内层的json对象上添加此属性
             var addProperties = List.of("bookName", "authorName");
 

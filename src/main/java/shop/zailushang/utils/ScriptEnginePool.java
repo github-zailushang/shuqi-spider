@@ -1,5 +1,8 @@
 package shop.zailushang.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -22,8 +25,11 @@ public class ScriptEnginePool {
     // 阻塞队列
     private static final BlockingDeque<ScriptEngine> blockingDeque;
 
+    private static final Logger logger = LoggerFactory.getLogger(ScriptEnginePool.class);
+
     static {
         // 缓存1000个JS引擎对象
+        logger.info("{} - 执行初始化js引擎池", Thread.currentThread().getName());
         blockingDeque = IntStream.rangeClosed(1, 1000)
                 .mapToObj(unused -> createScriptEngine())
                 .collect(Collectors.toCollection(LinkedBlockingDeque::new));
@@ -48,6 +54,7 @@ public class ScriptEnginePool {
      */
     public static ScriptEngine use() {
         try {
+            logger.info("{} - 使用js引擎执行解密操作", Thread.currentThread().getName());
             return blockingDeque.take();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -59,6 +66,7 @@ public class ScriptEnginePool {
      */
     public static void release(ScriptEngine scriptEngine) {
         try {
+            logger.info("{} - 归还js引擎至引擎池", Thread.currentThread().getName());
             blockingDeque.put(scriptEngine);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
