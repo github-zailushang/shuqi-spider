@@ -109,7 +109,7 @@ public interface Flow<T, R> {
                     .then(Parser.Parsers.contentParser())
                     .then(Decoder.Decoders.contentDecoder())
                     .then(Formatter.Formatters.contentFormatter())
-                    .then(Writer.Writes.fileWriter());
+                    .then(Writer.Writers.fileWriter());
         }
 
         // 完整 合并文件 的流程组装

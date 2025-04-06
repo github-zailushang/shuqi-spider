@@ -22,8 +22,8 @@ public interface Writer extends Task<Chapter.Chapter4Save, Chapter.Chapter4Merge
 
     CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Save content);
 
-    class Writes {
-        private static final Logger logger = LoggerFactory.getLogger(Writes.class);
+    class Writers {
+        private static final Logger logger = LoggerFactory.getLogger(Writers.class);
 
         // 将章节内容打印在控制台，调试时用
         @SuppressWarnings("unused")
