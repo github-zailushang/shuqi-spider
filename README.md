@@ -24,7 +24,7 @@
 ---
 title: Flow 调用流程图
 ---
-flowchart TB
+flowchart TD
     Reader([Reader：执行请求下载])
     --> Selector([Selector：执行元素选择])
     --> Parser([Parser：执行文本解析])
