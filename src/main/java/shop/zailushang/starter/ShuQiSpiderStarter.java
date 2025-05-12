@@ -1,8 +1,6 @@
-package shop.zailushang.stater;
+package shop.zailushang.starter;
 
 import shop.zailushang.flow.FlowEngine;
-
-import java.util.List;
 
 /**
  * 只能用于下载免费阅读的章节，VIP章节虽然走的是同样的接口，但肯定是会对资源做了登录权限校验的
@@ -12,7 +10,7 @@ import java.util.List;
  * 下载文件默认写入地址： D:/书名/书名.txt
  * 2025年5月12日注：网站已调整运营策略，全文章需要VIP校验，但所有实现接口不变，VIP鉴权自行调试
  */
-public class ShuQiSpiderStater {
+public class ShuQiSpiderStarter {
     public static void main(String[] args) {
         // 禁用 GraalVM 警告日志
         System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
