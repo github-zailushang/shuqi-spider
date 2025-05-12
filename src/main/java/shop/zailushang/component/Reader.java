@@ -6,7 +6,6 @@ import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
@@ -26,15 +25,14 @@ public interface Reader<T, R> extends Task<T, R> {
 
     // 发送请求,获取响应文本
     static CompletableFuture<String> read0(String uri) {
-        try (var httpClient = HttpClient.newBuilder().build()) {
-            var request = HttpRequest.newBuilder()
-                    .uri(URI.create(uri))
-                    .build();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .build();
 
-            return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body);
-        }
+        return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApplyAsync(HttpResponse::body, FlowEngine.IO_TASK_EXECUTOR);
     }
+
 
     /**
      * 工厂类： 使用静态工厂 && 策略
@@ -54,7 +52,7 @@ public interface Reader<T, R> extends Task<T, R> {
                 var bidUri = bidUriFormatter.formatted(bookName);
                 logger.info("{} - 执行获取bid操作 url => {}", Thread.currentThread().getName(), bidUri);
                 return CompletableFuture.completedFuture(bidUri)
-                        .thenCompose(Reader::read0);
+                        .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
             };
         }
 
@@ -66,7 +64,7 @@ public interface Reader<T, R> extends Task<T, R> {
                 var chapterUri = chapterUriFormatter.formatted(bid);
                 logger.info("{} - 执行获取章节列表操作 url => {}", Thread.currentThread().getName(), chapterUri);
                 return CompletableFuture.completedFuture(chapterUri)
-                        .thenCompose(Reader::read0);
+                        .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
             };
         }
 
@@ -77,31 +75,26 @@ public interface Reader<T, R> extends Task<T, R> {
             return chapter4Download -> {
                 var contentUri = contentUriFormatter.formatted(chapter4Download.contUrlSuffix());
                 logger.info("{} - 执行获取章节内容操作 url => {}", Thread.currentThread().getName(), contentUri);
-                // 异步执行
-                return CompletableFuture.completedFuture(contentUri)
-                        .thenApplyAsync(uri -> {
-                            try {
-                                // 别改！别改！别改！后果自负！！！
-                                // 流控 -- start
-                                // 控制最大并发数
-                                FlowEngine.SEMAPHORE.acquire();
-                                // 休眠1s
-                                TimeUnit.SECONDS.sleep(1);
-                                // 流控 -- end
-                                return read0(uri);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            } finally {
-                                FlowEngine.SEMAPHORE.release();
-                            }
-                        }, FlowEngine.IO_TASK_EXECUTOR)
-                        // 很low的传参方式，但后续执行下载时需要这些参数，只能由此往后传递
-                        // 拼接后续流程所需参数：书名/章节序号.txt 作为章节文件名
-                        // 取值时是逆序，后来居上
-                        .thenApply(CompletableFuture::join)
-                        .thenApply(jsonStr -> String.format("%s#%s", chapter4Download.chapterOrdid(), jsonStr))// [2]
-                        .thenApply(jsonStr -> String.format("%s#%s", chapter4Download.chapterName(), jsonStr))// [1]
-                        .thenApply(jsonStr -> String.format("%s#%s", chapter4Download.bookName(), jsonStr));// [0]
+                try {
+                    // 别改！别改！别改！后果自负！！！
+                    // 流控 -- start
+                    // 控制最大并发数
+                    FlowEngine.SEMAPHORE.acquire();
+                    // 休眠1s
+                    TimeUnit.SECONDS.sleep(1);
+                    // 流控 -- end
+                    return read0(contentUri)
+                            // 很low的传参方式，但后续执行下载时需要这些参数，只能由此往后传递
+                            // 拼接后续流程所需参数：书名/章节序号.txt 作为章节文件名
+                            // 取值时是逆序，后来居上
+                            .thenApplyAsync(jsonStr -> String.format("%s#%s", chapter4Download.chapterOrdid(), jsonStr), FlowEngine.IO_TASK_EXECUTOR)// [2]
+                            .thenApplyAsync(jsonStr -> String.format("%s#%s", chapter4Download.chapterName(), jsonStr), FlowEngine.IO_TASK_EXECUTOR)// [1]
+                            .thenApplyAsync(jsonStr -> String.format("%s#%s", chapter4Download.bookName(), jsonStr), FlowEngine.IO_TASK_EXECUTOR);// [0];
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    FlowEngine.SEMAPHORE.release();
+                }
             };
         }
     }

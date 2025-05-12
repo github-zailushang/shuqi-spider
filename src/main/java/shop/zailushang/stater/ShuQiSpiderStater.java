@@ -10,6 +10,7 @@ import java.util.List;
  * 要下载VIP章节，你得有VIP账号，至于鉴权，要么是cookie，要么其他特殊请求头
  * 调试一下，在 {@link shop.zailushang.component.Reader#read0 } 中添加对应请求头即可，本人没有VIP账号就不试了
  * 下载文件默认写入地址： D:/书名/书名.txt
+ * 2025年5月12日注：网站已调整运营策略，全文章需要VIP校验，但所有实现接口不变，VIP鉴权自行调试
  */
 public class ShuQiSpiderStater {
     public static void main(String[] args) {

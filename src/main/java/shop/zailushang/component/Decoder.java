@@ -6,6 +6,7 @@ import shop.zailushang.entity.Chapter;
 import shop.zailushang.utils.ScriptEnginePool;
 
 import javax.script.Invocable;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -26,13 +27,12 @@ public interface Decoder extends Task<Chapter.Chapter4Save, Chapter.Chapter4Save
 
         public static Decoder contentDecoder() {
             return chapter -> {
+                // 调用 js引擎池 解密章节内容
+                var scriptEngine = ScriptEnginePool.use();
                 try {
                     logger.info("{} - 执行解密操作", Thread.currentThread().getName());
-                    // 调用 js引擎池 解密章节内容
-                    var scriptEngine = ScriptEnginePool.use();
-                    var chapterContext = (String) ((Invocable) scriptEngine).invokeFunction("_decode", chapter.chapterContext());
-                    // 归还 js引擎对象
-                    ScriptEnginePool.release(scriptEngine);
+                    var chapterContext = Optional.ofNullable(chapter.chapterContext()).orElseThrow(() -> new RuntimeException("无法下载VIP章节，如已开通VIP账号，添加权限校验。"));
+                    chapterContext = (String) ((Invocable) scriptEngine).invokeFunction("_decode", chapterContext);
                     return CompletableFuture.completedFuture(
                             new Chapter.Chapter4Save(
                                     chapter.bookName(),
@@ -43,6 +43,9 @@ public interface Decoder extends Task<Chapter.Chapter4Save, Chapter.Chapter4Save
                     );
                 } catch (Exception e) {
                     throw new RuntimeException(e);
+                } finally {
+                    // 归还 js引擎对象
+                    ScriptEnginePool.release(scriptEngine);
                 }
             };
         }

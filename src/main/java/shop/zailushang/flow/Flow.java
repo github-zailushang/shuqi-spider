@@ -77,7 +77,7 @@ public interface Flow<T, R> {
                     downloads -> {
                         var contentFlowStarts = Flow.<Chapter.Chapter4Download>startParallel(downloads.size());
                         final var parallelFlows = contentFlowStarts.stream()
-                                //.limit(30) // 仅下载前 30章： 用于测试时，控制下载章节数量
+                                //.limit(20) // 仅下载前 20章： 用于测试时，控制下载章节数量
                                 .map(flow -> flow.then(contentFlow))
                                 .toList();
 
