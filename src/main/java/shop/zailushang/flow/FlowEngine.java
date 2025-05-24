@@ -48,7 +48,7 @@ public class FlowEngine implements AutoCloseable {
         var bidFlow = Flow.Flows.bidFlow();
         var chapterFlow = Flow.Flows.chapterFlow();
 
-        var downloads = bidFlow.then(chapterFlow)
+        var downloads = bidFlow.thenAsync(chapterFlow)
                 .start(bookName);
 
         var contentListFlow = Flow.Flows.contentListFlow();

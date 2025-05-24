@@ -20,10 +20,18 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     CompletableFuture<R> execute(T param);
 
     /**
-     * 高阶函数：利用函数式编程的函数组合特性，来组装两个任务
-     * 全异步调用
+     * 同步调用链
      */
     default <V> Task<T, V> then(Task<? super R, V> next) {
+        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("An unexamined life is not worth living. — Socrates"));
+        return t -> execute(t).thenCompose(next);
+    }
+
+    /**
+     * 高阶函数：利用函数式编程的函数组合特性，来组装两个任务
+     * 异步调用链
+     */
+    default <V> Task<T, V> thenAsync(Task<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("An unexamined life is not worth living. — Socrates"));
         return t -> execute(t).thenComposeAsync(next, FlowEngine.IO_TASK_EXECUTOR);
     }

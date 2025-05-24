@@ -43,10 +43,16 @@ public interface Flow<T, R> {
                 .toList();
     }
 
-    // 每条flow 由多个 task#then 组装而成，而 flow 和 flow 之间的 then，实则也是用 头结点的 then 来组装
+    @SuppressWarnings("unused")
     default <V> Flow<T, V> then(Flow<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
         return () -> head().then(next.head());
+    }
+
+    // 每条flow 由多个 task#then 组装而成，而 flow 和 flow 之间的 then，实则也是用 头结点的 then 来组装
+    default <V> Flow<T, V> thenAsync(Flow<? super R, V> next) {
+        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
+        return () -> head().thenAsync(next.head());
     }
 
     /**
@@ -59,15 +65,15 @@ public interface Flow<T, R> {
         // 完整 下载bid 的流程组装
         public static Flow<String, String> bidFlow() {
             return () -> Reader.Readers.bidReader()
-                    .then(Selector.Selectors.bidSelector())
-                    .then(Parser.Parsers.bidParser());
+                    .thenAsync(Selector.Selectors.bidSelector())
+                    .thenAsync(Parser.Parsers.bidParser());
         }
 
         // 完整 下载章节列表 的流程组装
         public static Flow<String, List<Chapter.Chapter4Download>> chapterFlow() {
             return () -> Reader.Readers.chapterReader()
-                    .then(Selector.Selectors.chapterSelector())
-                    .then(Parser.Parsers.chapterParser());
+                    .thenAsync(Selector.Selectors.chapterSelector())
+                    .thenAsync(Parser.Parsers.chapterParser());
         }
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
@@ -78,7 +84,7 @@ public interface Flow<T, R> {
                         var contentFlowStarts = Flow.<Chapter.Chapter4Download>startParallel(downloads.size());
                         final var parallelFlows = contentFlowStarts.stream()
                                 //.limit(20) // 仅下载前 20章： 用于测试时，控制下载章节数量
-                                .map(flow -> flow.then(contentFlow))
+                                .map(flow -> flow.thenAsync(contentFlow))
                                 .toList();
 
                         var atoLong = new AtomicLong(0);
@@ -105,11 +111,11 @@ public interface Flow<T, R> {
         // 部分 下载章节内容 的流程组装[针对一条章节内容]
         public static Flow<Chapter.Chapter4Download, Chapter.Chapter4Merge> contentFlow() {
             return () -> Reader.Readers.contentReader()
-                    .then(Selector.Selectors.contentSelector())
-                    .then(Parser.Parsers.contentParser())
-                    .then(Decoder.Decoders.contentDecoder())
-                    .then(Formatter.Formatters.contentFormatter())
-                    .then(Writer.Writers.fileWriter());
+                    .thenAsync(Selector.Selectors.contentSelector())
+                    .thenAsync(Parser.Parsers.contentParser())
+                    .thenAsync(Decoder.Decoders.contentDecoder())
+                    .thenAsync(Formatter.Formatters.contentFormatter())
+                    .thenAsync(Writer.Writers.fileWriter());
         }
 
         // 完整 合并文件 的流程组装

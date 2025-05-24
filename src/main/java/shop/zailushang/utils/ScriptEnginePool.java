@@ -41,7 +41,7 @@ public class ScriptEnginePool {
     private static ScriptEngine createScriptEngine() {
         var scriptEngineManager = new ScriptEngineManager();
         var scriptEngine = scriptEngineManager.getEngineByName("JavaScript");
-        try (var inputStreamReader = new InputStreamReader(ScriptEnginePool.class.getResourceAsStream("/decode.js"))) {
+        try (var inputStreamReader = new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("decode.js"))) {
             scriptEngine.eval(inputStreamReader);
             return scriptEngine;
         } catch (IOException | ScriptException e) {
