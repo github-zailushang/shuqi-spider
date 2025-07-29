@@ -1,5 +1,7 @@
 ## A simple Java web spider for downloading e-books from ShuQi Novels
 
+https://blog.csdn.net/qq_40553917/article/details/140622178
+
 ### 内容概览
 
 - 功能：Java爬虫
