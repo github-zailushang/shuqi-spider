@@ -89,6 +89,7 @@ public interface Flow<T, R> {
 
                         var atoLong = new AtomicLong(0);
                         var sources = IntStream.range(0, parallelFlows.size())
+                                .parallel() // 开启并行流加速提交
                                 .mapToObj(index -> parallelFlows.get(index).start(downloads.get(index)))
                                 .sorted(Comparator.comparing(chapter4Merge ->
                                         // 文件名的数字顺序
