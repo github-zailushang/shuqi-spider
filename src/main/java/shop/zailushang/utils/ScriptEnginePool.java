@@ -1,7 +1,6 @@
 package shop.zailushang.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -20,20 +19,20 @@ import java.util.stream.IntStream;
  * 但js是单线程语言，多线程访问会报错，一开始我是使用一个 JS 引擎对象去加锁串行，但效率实在太慢
  * 故在此初始化缓存200个JS引擎对象来执行解密操作，各用各的，互不干扰
  */
+@Slf4j
 public class ScriptEnginePool {
-
     // 阻塞队列
     private static final BlockingDeque<ScriptEngine> blockingDeque;
-
-    private static final Logger logger = LoggerFactory.getLogger(ScriptEnginePool.class);
+    private static final String NAME = "「「「器之一」」」";
 
     static {
-        // 缓存1000个JS引擎对象
-        logger.info("{} - 执行初始化js引擎池", Thread.currentThread().getName());
+        // 缓存 200 个JS引擎对象
+        log.info(" - 执行初始化js引擎池");
         blockingDeque = IntStream.rangeClosed(1, 200)
                 .mapToObj(unused -> createScriptEngine())
                 .collect(Collectors.toCollection(LinkedBlockingDeque::new));
     }
+
 
     /**
      * 生成JS引擎
@@ -52,9 +51,9 @@ public class ScriptEnginePool {
     /**
      * 借用一个JS引擎对象
      */
-    public static ScriptEngine use() {
+    public static ScriptEngine acquire() {
         try {
-            logger.info("{} - 使用js引擎执行解密操作", Thread.currentThread().getName());
+            log.info("{} - 使用js引擎执行解密操作", NAME);
             return blockingDeque.take();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -66,7 +65,7 @@ public class ScriptEnginePool {
      */
     public static void release(ScriptEngine scriptEngine) {
         try {
-            logger.info("{} - 归还js引擎至引擎池", Thread.currentThread().getName());
+            log.info("{} - 归还js引擎至引擎池", NAME);
             blockingDeque.put(scriptEngine);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

@@ -1,14 +1,13 @@
 package shop.zailushang.component;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * 組件：内容格式化器，调整解密后的章节内容排版、操作包括：用\n 替换 <br/>, 去除收尾空白，拼接章节标题
+ * 組件：内容格式化器，调整解密后的章节内容排版、操作包括：用\n 替换 <br/>, 去除首尾空白，拼接章节标题
  */
 @FunctionalInterface
 public interface Formatter extends Task<Chapter.Chapter4Save, Chapter.Chapter4Save> {
@@ -20,12 +19,21 @@ public interface Formatter extends Task<Chapter.Chapter4Save, Chapter.Chapter4Sa
 
     CompletableFuture<Chapter.Chapter4Save> format(Chapter.Chapter4Save chapter);
 
+    // 组件名
+    static String name() {
+        return "「排」";
+    }
+
+    @Slf4j
     class Formatters {
-        private static final Logger logger = LoggerFactory.getLogger(Formatters.class);
+
+        static {
+            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Formatter.name());
+        }
 
         public static Formatter contentFormatter() {
             return chapter -> {
-                logger.info("{} - 执行章节内容格式化操作", Thread.currentThread().getName());
+                log.info("{} - 执行章节内容格式化操作", Formatter.name());
                 var chapterContext = chapter.chapterContext()
                         // 替换换行符
                         .replaceAll("<br/>", "\n")

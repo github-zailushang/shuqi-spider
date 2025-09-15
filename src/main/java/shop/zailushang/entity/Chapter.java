@@ -1,6 +1,6 @@
 package shop.zailushang.entity;
 
-import java.nio.file.Path;
+import java.nio.channels.FileChannel;
 
 // 章节内容
 public class Chapter {
@@ -13,10 +13,14 @@ public class Chapter {
     public record Chapter4Save(String bookName, String chapterName, String chapterOrdid, String chapterContext) {
     }
 
+    // 解码时
+    public record Chapter4Decode(String bookName, String chapterName, String chapterOrdid, String jsonCiphertext) {
+    }
+
     // 文件合并时
-    public record Chapter4Merge(Integer orderId, Path folderPath, Path filePath, String bookName, Long skip) {
-        public Chapter4Merge(Integer orderId, Path folderPath, Path filePath, String bookName) {
-            this(orderId, folderPath, filePath, bookName, 0L);
+    public record Chapter4Merge(Integer orderId, FileChannel fileChannel, String bookName, Long skip) {
+        public Chapter4Merge(Integer orderId, FileChannel fileChannel, String bookName) {
+            this(orderId, fileChannel, bookName, -1L);
         }
     }
 }

@@ -5,7 +5,6 @@ import shop.zailushang.utils.Assert;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.utils.IOForkJoinTask;
 
-import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.*;
@@ -87,19 +86,22 @@ public interface Flow<T, R> {
                                 .map(flow -> flow.thenAsync(contentFlow))
                                 .toList();
 
-                        var atoLong = new AtomicLong(0);
+                        // 因后面的 skip 属性强依赖排序结果来计算，此处开启并行流，会导致 skip 计算异常，表现为在后续的文件写入时，文件指针会乱序
+                        // 故在此处需要提前收集源，再另行排序
                         var sources = IntStream.range(0, parallelFlows.size())
                                 .parallel() // 开启并行流加速提交
                                 .mapToObj(index -> parallelFlows.get(index).start(downloads.get(index)))
-                                .sorted(Comparator.comparing(chapter4Merge ->
-                                        // 文件名的数字顺序
-                                        Integer.valueOf(chapter4Merge.filePath().getFileName().toString().transform(str -> str.substring(0, str.lastIndexOf(".")))))
-                                )
+                                .toList();
+
+                        // 排序并设置 skip 属性
+                        var atoLong = new AtomicLong(0);
+                        sources = sources.stream()
+                                .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 章节按照 1 ~ N连续自然数顺序 排序
                                 .map(merge -> {
                                     try {
-                                        // 这里设置每章的 skip 跳过字节数，因为用了 recode,final 类设计，无setter可用，只能我转我自己，多了 skip : atoLong.getAndAdd(size)
-                                        long size = Files.size(merge.filePath());
-                                        return new Chapter.Chapter4Merge(merge.orderId(), merge.folderPath(), merge.filePath(), merge.bookName(), atoLong.getAndAdd(size));
+                                        // 这里设置每章的 skip 跳过字节数，因为用了 recode，final 类设计，无 setter可用，只能我转我自己，多了 skip : atoLong.getAndAdd(size)
+                                        var size = merge.fileChannel().size();
+                                        return new Chapter.Chapter4Merge(merge.orderId(), merge.fileChannel(), merge.bookName(), atoLong.getAndAdd(size));
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }

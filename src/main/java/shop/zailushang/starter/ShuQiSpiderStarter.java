@@ -1,14 +1,13 @@
 package shop.zailushang.starter;
 
+import shop.zailushang.flow.Flow;
 import shop.zailushang.flow.FlowEngine;
 
 /**
- * 只能用于下载免费阅读的章节，VIP章节虽然走的是同样的接口，但肯定是会对资源做了登录权限校验的
- * 下载VIP内容时，接口返回为空，对应在代码中则是：在使用 Decoder 进行解密时会出错，比如：大主宰，只能下载前20章免费章节
- * 要下载VIP章节，你得有VIP账号，至于鉴权，要么是cookie，要么其他特殊请求头
- * 调试一下，在 {@link shop.zailushang.component.Reader#read0 } 中添加对应请求头即可，本人没有VIP账号就不试了
- * 下载文件默认写入地址： D:/书名/书名.txt
- * 2025年5月12日注：网站已调整运营策略，全文章需要VIP校验，但所有实现接口不变，VIP鉴权自行调试
+ * 仅可用于下载免费阅读的章节，下载 VIP章节 时，需要添加 VIP 账号登录认证
+ * 在 {@link shop.zailushang.component.Reader#read0 } 中添加对应 cookie
+ * 作者注：本程序在编时，该网站大多数书籍均为免费阅读，后该网站调整运营策略，全文章需要 VIP校验，仅前 20 章免费
+ * 如想测试下载前20章，开启 {@link Flow.Flows#contentListFlow()}  } 85行注释
  */
 public class ShuQiSpiderStarter {
     public static void main(String[] args) {

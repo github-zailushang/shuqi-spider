@@ -3,8 +3,7 @@ package shop.zailushang.component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.Content;
 
@@ -37,8 +36,17 @@ public interface Parser<T, R> extends Task<T, R> {
         }
     }
 
+    // 组件名
+    static String name() {
+        return "「析」";
+    }
+
+    @Slf4j
     class Parsers {
-        private static final Logger logger = LoggerFactory.getLogger(Parsers.class);
+
+        static {
+            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Parser.name());
+        }
 
         // bid解析器
         public static Parser<String, String> bidParser() {
@@ -46,7 +54,7 @@ public interface Parser<T, R> extends Task<T, R> {
 //            return Parser.identity();
             // bid 无需额外解析，只是过个流程
             return source -> {
-                logger.info("{} - 执行解析bid内容操作", Thread.currentThread().getName());
+                log.info("{} - 执行解析bid内容操作", Parser.name());
                 return CompletableFuture.completedFuture(source);
             };
         }
@@ -61,7 +69,7 @@ public interface Parser<T, R> extends Task<T, R> {
             var addProperties = List.of("bookName", "authorName");
 
             return chapterSource -> {
-                logger.info("{} - 执行解析章节列表操作", Thread.currentThread().getName());
+                log.info("{} - 执行解析章节列表操作", Parser.name());
                 try {
                     var jsonNode = new ObjectMapper().readValue(chapterSource, JsonNode.class);
                     // 章节列表
@@ -93,24 +101,22 @@ public interface Parser<T, R> extends Task<T, R> {
                                     .toList()
                     );
                 } catch (Exception e) {
+                    log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
                     throw new RuntimeException(e);
                 }
             };
         }
 
         // 章节内容解析器
-        public static Parser<String, Chapter.Chapter4Save> contentParser() {
-            return contentSource -> {
-                logger.info("{} - 执行解析章节内容操作", Thread.currentThread().getName());
-                // contentReader -> contentSelector -> contentParse
-                // 处理拼接的参数，前面 contentReader 下载完成后拼接专递过来的
-                var strArr = contentSource.split("#");
-                var bookName = strArr[0];
-                var chapterName = strArr[1];
-                var chapterOrdid = strArr[2];
-                var jsonStr = strArr[3];
+        public static Parser<Chapter.Chapter4Decode, Chapter.Chapter4Save> contentParser() {
+            return chapter4Decode -> {
+                log.info("{} - 执行解析章节内容操作", Parser.name());
                 // json 转换为 章节内容对象[尚需解密]
-                var content = Parser.jsonParser(jsonStr, Content.class);
+                var bookName = chapter4Decode.bookName();
+                var chapterName = chapter4Decode.chapterName();
+                var chapterOrdid = chapter4Decode.chapterOrdid();
+                var jsonCiphertext = chapter4Decode.jsonCiphertext();
+                var content = Parser.jsonParser(jsonCiphertext, Content.class);
                 // 构建下一步[解密]，需要的对象
                 return CompletableFuture.completedFuture(new Chapter.Chapter4Save(bookName, chapterName, chapterOrdid, content.ChapterContent()));
             };

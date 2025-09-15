@@ -1,8 +1,8 @@
 package shop.zailushang.component;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import shop.zailushang.entity.Chapter;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -23,8 +23,17 @@ public interface Selector<T, R> extends Task<T, R> {
         return CompletableFuture::completedFuture;
     }
 
+    // 组件名
+    static String name() {
+        return "「择」";
+    }
+
+    @Slf4j
     class Selectors {
-        public static final Logger logger = LoggerFactory.getLogger(Selectors.class);
+
+        static {
+            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Selector.name());
+        }
 
         // bid元素选择器
         public static Selector<String, String> bidSelector() {
@@ -34,7 +43,7 @@ public interface Selector<T, R> extends Task<T, R> {
             final var bidXpath = "/html/body/div[1]/div[3]/div/div[4]/div/span[2]";
 
             return bidDoc -> {
-                logger.info("{} - 执行选择bid元素操作", Thread.currentThread().getName());
+                log.info("{} - 执行选择bid元素操作", Selector.name());
                 return CompletableFuture.completedFuture(
                         Jsoup.parse(bidDoc)
                                 .selectXpath(bidXpath)
@@ -46,9 +55,9 @@ public interface Selector<T, R> extends Task<T, R> {
 
         // 章节列表元素选择器
         public static Selector<String, String> chapterSelector() {
-            var chapterXpath = "/html/body/i[5]";
+            final var chapterXpath = "/html/body/i[5]";
             return chapterDoc -> {
-                logger.info("{} - 执行选择章节列表元素操作", Thread.currentThread().getName());
+                log.info("{} - 执行选择章节列表元素操作", Selector.name());
                 return CompletableFuture.completedFuture(
                         Jsoup.parse(chapterDoc)
                                 .selectXpath(chapterXpath)
@@ -57,12 +66,12 @@ public interface Selector<T, R> extends Task<T, R> {
         }
 
         // 章节内容元素选择器
-        public static Selector<String, String> contentSelector() {
+        public static Selector<Chapter.Chapter4Decode, Chapter.Chapter4Decode> contentSelector() {
             // 不方便加日志，弃用
 //            return Selector.identity();
             // 章节内容直接为 json 字符串，无需额外选择器，走个流程
             return doc -> {
-                logger.info("{} - 执行选择章节内容元素操作", Thread.currentThread().getName());
+                log.info("{} - 执行选择章节内容元素操作", Selector.name());
                 return CompletableFuture.completedFuture(doc);
             };
         }

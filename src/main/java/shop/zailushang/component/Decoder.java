@@ -1,7 +1,6 @@
 package shop.zailushang.component;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.utils.ScriptEnginePool;
 
@@ -22,26 +21,30 @@ public interface Decoder extends Task<Chapter.Chapter4Save, Chapter.Chapter4Save
 
     CompletableFuture<Chapter.Chapter4Save> decode(Chapter.Chapter4Save content);
 
+    // 组件名
+    static String name() {
+        return "「译」";
+    }
+
+    @Slf4j
     class Decoders {
-        private static final Logger logger = LoggerFactory.getLogger(Decoder.class);
+
+        static {
+            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Decoder.name());
+        }
 
         public static Decoder contentDecoder() {
             return chapter -> {
                 // 调用 js引擎池 解密章节内容
-                var scriptEngine = ScriptEnginePool.use();
+                var scriptEngine = ScriptEnginePool.acquire();
                 try {
-                    logger.info("{} - 执行解密操作", Thread.currentThread().getName());
-                    var chapterContext = Optional.ofNullable(chapter.chapterContext()).orElseThrow(() -> new RuntimeException("无法下载VIP章节，如已开通VIP账号，添加权限校验。"));
+                    log.info("{} - 执行解密操作", Decoder.name());
+                    var chapterContext = Optional.ofNullable(chapter.chapterContext()).orElseThrow(() -> new RuntimeException("无法下载VIP章节，如已开通VIP账号，自行添加VIP权限校验。"));
                     chapterContext = (String) ((Invocable) scriptEngine).invokeFunction("_decode", chapterContext);
-                    return CompletableFuture.completedFuture(
-                            new Chapter.Chapter4Save(
-                                    chapter.bookName(),
-                                    chapter.chapterName(),
-                                    chapter.chapterOrdid(),
-                                    chapterContext
-                            )
-                    );
+                    var chapter4Save = new Chapter.Chapter4Save(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext);
+                    return CompletableFuture.completedFuture(chapter4Save);
                 } catch (Exception e) {
+                    log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
                     throw new RuntimeException(e);
                 } finally {
                     // 归还 js引擎对象
