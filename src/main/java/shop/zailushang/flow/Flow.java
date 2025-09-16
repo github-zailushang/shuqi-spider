@@ -69,18 +69,18 @@ public interface Flow<T, R> {
         }
 
         // 完整 下载章节列表 的流程组装
-        public static Flow<String, List<Chapter.Chapter4Download>> chapterFlow() {
+        public static Flow<String, List<Chapter.Chapter4Read>> chapterFlow() {
             return () -> Reader.Readers.chapterReader()
                     .thenAsync(Selector.Selectors.chapterSelector())
                     .thenAsync(Parser.Parsers.chapterParser());
         }
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
-        public static Flow<List<Chapter.Chapter4Download>, List<Chapter.Chapter4Merge>> contentListFlow() {
+        public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
             final var contentFlow = Flow.Flows.contentFlow();
             return () ->
                     downloads -> {
-                        var contentFlowStarts = Flow.<Chapter.Chapter4Download>startParallel(downloads.size());
+                        var contentFlowStarts = Flow.<Chapter.Chapter4Read>startParallel(downloads.size());
                         final var parallelFlows = contentFlowStarts.stream()
                                 //.limit(20) // 仅下载前 20章： 用于测试时，控制下载章节数量
                                 .map(flow -> flow.thenAsync(contentFlow))
@@ -112,7 +112,7 @@ public interface Flow<T, R> {
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]
-        public static Flow<Chapter.Chapter4Download, Chapter.Chapter4Merge> contentFlow() {
+        public static Flow<Chapter.Chapter4Read, Chapter.Chapter4Merge> contentFlow() {
             return () -> Reader.Readers.contentReader()
                     .thenAsync(Selector.Selectors.contentSelector())
                     .thenAsync(Parser.Parsers.contentParser())

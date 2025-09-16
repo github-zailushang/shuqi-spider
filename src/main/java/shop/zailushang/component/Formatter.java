@@ -10,14 +10,14 @@ import java.util.stream.Collectors;
  * 組件：内容格式化器，调整解密后的章节内容排版、操作包括：用\n 替换 <br/>, 去除首尾空白，拼接章节标题
  */
 @FunctionalInterface
-public interface Formatter extends Task<Chapter.Chapter4Save, Chapter.Chapter4Save> {
+public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4Write> {
 
     @Override
-    default CompletableFuture<Chapter.Chapter4Save> execute(Chapter.Chapter4Save chapter) {
+    default CompletableFuture<Chapter.Chapter4Write> execute(Chapter.Chapter4Format chapter) {
         return format(chapter);
     }
 
-    CompletableFuture<Chapter.Chapter4Save> format(Chapter.Chapter4Save chapter);
+    CompletableFuture<Chapter.Chapter4Write> format(Chapter.Chapter4Format chapter);
 
     // 组件名
     static String name() {
@@ -34,7 +34,7 @@ public interface Formatter extends Task<Chapter.Chapter4Save, Chapter.Chapter4Sa
         public static Formatter contentFormatter() {
             return chapter -> {
                 log.info("{} - 执行章节内容格式化操作", Formatter.name());
-                var chapterContext = chapter.chapterContext()
+                var chapterContext = chapter.unformattedChapterContent()
                         // 替换换行符
                         .replaceAll("<br/>", "\n")
                         .lines()
@@ -44,7 +44,8 @@ public interface Formatter extends Task<Chapter.Chapter4Save, Chapter.Chapter4Sa
                         .collect(Collectors.joining("\n"))
                         // 拼接章节标题、行尾添加两个换行，方便后续文件合并时操作
                         .transform(str -> String.format("%s\n%s\n\n", chapter.chapterName(), str));
-                return CompletableFuture.completedFuture(new Chapter.Chapter4Save(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext));
+                var chapter4Write = new Chapter.Chapter4Write(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext);
+                return CompletableFuture.completedFuture(chapter4Write);
             };
         }
     }

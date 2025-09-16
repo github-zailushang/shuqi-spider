@@ -14,13 +14,13 @@ import java.util.concurrent.CompletableFuture;
  * 组件：保存章节内容，将排版后的章节内容写入文件，每章为一个文件
  */
 @FunctionalInterface
-public interface Writer extends Task<Chapter.Chapter4Save, Chapter.Chapter4Merge> {
+public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merge> {
     @Override
-    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Save chapter) {
+    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Write chapter) {
         return write(chapter);
     }
 
-    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Save content);
+    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Write chapter);
 
     // 组件名
     static String name() {

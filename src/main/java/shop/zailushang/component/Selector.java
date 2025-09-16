@@ -66,13 +66,14 @@ public interface Selector<T, R> extends Task<T, R> {
         }
 
         // 章节内容元素选择器
-        public static Selector<Chapter.Chapter4Decode, Chapter.Chapter4Decode> contentSelector() {
+        public static Selector<Chapter.Chapter4Select, Chapter.Chapter4Parse> contentSelector() {
             // 不方便加日志，弃用
 //            return Selector.identity();
             // 章节内容直接为 json 字符串，无需额外选择器，走个流程
-            return doc -> {
+            return chapter4Select -> {
                 log.info("{} - 执行选择章节内容元素操作", Selector.name());
-                return CompletableFuture.completedFuture(doc);
+                var chapter4Parse = new Chapter.Chapter4Parse(chapter4Select.bookName(), chapter4Select.chapterName(), chapter4Select.chapterOrdid(), chapter4Select.jsonCiphertext());
+                return CompletableFuture.completedFuture(chapter4Parse);
             };
         }
     }

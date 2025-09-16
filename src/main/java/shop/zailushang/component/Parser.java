@@ -60,7 +60,7 @@ public interface Parser<T, R> extends Task<T, R> {
         }
 
         // 章节列表解析器
-        public static Parser<String, List<Chapter.Chapter4Download>> chapterParser() {
+        public static Parser<String, List<Chapter.Chapter4Read>> chapterParser() {
             // 从最内层的json对象上移除这些属性，因为后续用不上，如果不手动移除，则要求在转换的对象上有这些属性，否则转json会失败
             // updated  2024年11月5日 网站新增属性添加至忽略列表 [dateOpen chapterLockDesc vipPriorityRead]
             var ignoreProperties = List.of("payStatus", "chapterPrice", "wordCount", "chapterUpdateTime",
@@ -93,7 +93,7 @@ public interface Parser<T, R> extends Task<T, R> {
                                     .map(JsonNode::toString)
                                     .map(chapterStr -> {
                                         try {
-                                            return new ObjectMapper().readValue(chapterStr, Chapter.Chapter4Download.class);
+                                            return new ObjectMapper().readValue(chapterStr, Chapter.Chapter4Read.class);
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
@@ -108,17 +108,17 @@ public interface Parser<T, R> extends Task<T, R> {
         }
 
         // 章节内容解析器
-        public static Parser<Chapter.Chapter4Decode, Chapter.Chapter4Save> contentParser() {
-            return chapter4Decode -> {
+        public static Parser<Chapter.Chapter4Parse, Chapter.Chapter4Decode> contentParser() {
+            return chapter4Parse -> {
                 log.info("{} - 执行解析章节内容操作", Parser.name());
                 // json 转换为 章节内容对象[尚需解密]
-                var bookName = chapter4Decode.bookName();
-                var chapterName = chapter4Decode.chapterName();
-                var chapterOrdid = chapter4Decode.chapterOrdid();
-                var jsonCiphertext = chapter4Decode.jsonCiphertext();
+                var bookName = chapter4Parse.bookName();
+                var chapterName = chapter4Parse.chapterName();
+                var chapterOrdid = chapter4Parse.chapterOrdid();
+                var jsonCiphertext = chapter4Parse.jsonCiphertext();
                 var content = Parser.jsonParser(jsonCiphertext, Content.class);
                 // 构建下一步[解密]，需要的对象
-                return CompletableFuture.completedFuture(new Chapter.Chapter4Save(bookName, chapterName, chapterOrdid, content.ChapterContent()));
+                return CompletableFuture.completedFuture(new Chapter.Chapter4Decode(bookName, chapterName, chapterOrdid, content.ChapterContent()));
             };
         }
     }

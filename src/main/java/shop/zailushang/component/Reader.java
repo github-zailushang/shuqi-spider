@@ -77,15 +77,15 @@ public interface Reader<T, R> extends Task<T, R> {
         }
 
         // 获取章节内容的http请求器
-        public static Reader<Chapter.Chapter4Download, Chapter.Chapter4Decode> contentReader() {
+        public static Reader<Chapter.Chapter4Read, Chapter.Chapter4Select> contentReader() {
             // 获取章节内容请求地址
             final var contentUriFormatter = "https://c13.shuqireader.com/pcapi/chapter/contentfree/%s";
-            return chapter4Download -> {
-                var contentUri = contentUriFormatter.formatted(chapter4Download.contUrlSuffix());
+            return chapter4Read -> {
+                var contentUri = contentUriFormatter.formatted(chapter4Read.contUrlSuffix());
                 log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri);
-                var bookName = chapter4Download.bookName();
-                var chapterName = chapter4Download.chapterName();
-                var chapterOrdid = chapter4Download.chapterOrdid();
+                var bookName = chapter4Read.bookName();
+                var chapterName = chapter4Read.chapterName();
+                var chapterOrdid = chapter4Read.chapterOrdid();
 
                 // 之前的流控写法存在问题，实际控制的时提交任务的数率，而不是并发数，正确的做法应该是，信号量作为每个任务的充要条件，任务开始获取，完成时释放
                 return CompletableFuture.supplyAsync(() -> {
@@ -94,8 +94,8 @@ public interface Reader<T, R> extends Task<T, R> {
                                 // 流控 -- start
                                 // 控制最大并发数
                                 FlowEngine.SEMAPHORE.acquire();
-                                // 休眠1s
-                                TimeUnit.SECONDS.sleep(3);
+                                // 休眠 2s
+                                TimeUnit.SECONDS.sleep(2);
                                 // 流控 -- end
                                 return read0(contentUri).join();
                             } catch (InterruptedException e) {
@@ -104,7 +104,7 @@ public interface Reader<T, R> extends Task<T, R> {
                                 FlowEngine.SEMAPHORE.release();
                             }
                         }, FlowEngine.IO_TASK_EXECUTOR)
-                        .thenApplyAsync(jsonStr -> new Chapter.Chapter4Decode(bookName, chapterName, chapterOrdid, jsonStr));
+                        .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr));
             };
         }
     }

@@ -26,7 +26,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
 
     // 默认每个线程处理 100章内容
     public PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, ExecutorService executor) {
-        this(sources, startIndex, endIndex, 19, executor);
+        this(sources, startIndex, endIndex, 100, executor);
     }
 
     @Override

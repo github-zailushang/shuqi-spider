@@ -43,14 +43,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
 
     // 要在线程内执行的任务的起始点
     default Result compute() {
-        if (needsFork()) {
-            // 拆分并提交子任务
-            CompletableFuture<Result>[] futures = fork();
-            // 阻塞等待子任务执行完毕
-            return join(futures);
-        } else {
-            return doCompute();
-        }
+        return needsFork() ? join(fork()) : doCompute();
     }
 
     // 执行具体的任务操作由子类实现
@@ -59,9 +52,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     // 任务拆分
     @SuppressWarnings("unchecked")
     default CompletableFuture<Result>[] fork() {
-        // 执行拆分
-        var tasks = doFork();
-        return Arrays.stream(tasks)
+        return Arrays.stream(doFork())
                 .map(task -> CompletableFuture.supplyAsync(task::compute, executor())) // 将子任务提交至线程池
                 .toArray(CompletableFuture[]::new);
     }
