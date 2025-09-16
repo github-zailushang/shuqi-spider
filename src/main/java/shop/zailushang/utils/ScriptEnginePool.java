@@ -27,7 +27,7 @@ public class ScriptEnginePool {
 
     static {
         // 缓存 200 个JS引擎对象
-        log.info(" - 执行初始化js引擎池");
+        log.info("{} - 执行初始化js引擎池", NAME);
         blockingDeque = IntStream.rangeClosed(1, 200)
                 .mapToObj(unused -> createScriptEngine())
                 .collect(Collectors.toCollection(LinkedBlockingDeque::new));
