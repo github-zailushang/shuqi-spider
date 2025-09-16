@@ -1,6 +1,5 @@
 package shop.zailushang.component;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public interface Parser<T, R> extends Task<T, R> {
             return chapterSource -> {
                 log.info("{} - 执行解析章节列表操作", Parser.name());
                 try {
-                    var jsonNode = new ObjectMapper().readValue(chapterSource, JsonNode.class);
+                    var jsonNode = new ObjectMapper().readTree(chapterSource);
                     // 章节列表
                     var chapterList = jsonNode.get("chapterList");
 
@@ -90,10 +89,9 @@ public interface Parser<T, R> extends Task<T, R> {
                                         // 添加外层属性
                                         addProperties.forEach(property -> ((ObjectNode) chapter).putIfAbsent(property, jsonNode.get(property)));
                                     })
-                                    .map(JsonNode::toString)
-                                    .map(chapterStr -> {
+                                    .map(chapterJsonNode -> {
                                         try {
-                                            return new ObjectMapper().readValue(chapterStr, Chapter.Chapter4Read.class);
+                                            return new ObjectMapper().treeToValue(chapterJsonNode, Chapter.Chapter4Read.class);
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
