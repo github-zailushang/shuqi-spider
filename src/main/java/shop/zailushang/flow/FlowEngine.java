@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
+    // 休眠时间
+    public static final long TIMEOUT = 2L;
     // io密集型任务线程池 ：使用虚拟线程池
     public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 

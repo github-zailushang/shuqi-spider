@@ -33,6 +33,28 @@ public interface Reader<T, R> extends Task<T, R> {
                 .thenApplyAsync(HttpResponse::body, FlowEngine.IO_TASK_EXECUTOR);
     }
 
+    // 流控专员
+    static <T, R> Reader<T, R> rateLimitedRead(Reader<? super T, ? extends R> innerReader, long timeout) {
+        return uri -> {
+            // 流控 -- start
+            try {
+                // 别改！别改！别改！后果自负！！！
+                FlowEngine.SEMAPHORE.acquire();
+                // 直接休眠指定秒数，这里就不额外计算了，徒添复杂度
+                TimeUnit.SECONDS.sleep(timeout);
+                // 需阻塞等待任务结束
+                var result = innerReader.execute(uri)
+                        .join();
+                return CompletableFuture.completedFuture(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                FlowEngine.SEMAPHORE.release();
+            }
+            // 流控 -- end
+        };
+    }
+
     // 组件名
     static String name() {
         return "「载」";
@@ -87,23 +109,9 @@ public interface Reader<T, R> extends Task<T, R> {
                 var chapterName = chapter4Read.chapterName();
                 var chapterOrdid = chapter4Read.chapterOrdid();
 
-                // 之前的流控写法存在问题，实际控制的时提交任务的数率，而不是并发数，正确的做法应该是，信号量作为每个任务的充要条件，任务开始获取，完成时释放
-                return CompletableFuture.supplyAsync(() -> {
-                            try {
-                                // 别改！别改！别改！后果自负！！！
-                                // 流控 -- start
-                                // 控制最大并发数
-                                FlowEngine.SEMAPHORE.acquire();
-                                // 休眠 2s
-                                TimeUnit.SECONDS.sleep(2);
-                                // 流控 -- end
-                                return read0(contentUri).join();
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            } finally {
-                                FlowEngine.SEMAPHORE.release();
-                            }
-                        }, FlowEngine.IO_TASK_EXECUTOR)
+                // 流控移至专员处理 rateLimitedRead
+                return CompletableFuture.completedFuture(contentUri)
+                        .thenComposeAsync(Reader.<String, String>rateLimitedRead(Reader::read0, FlowEngine.TIMEOUT)::execute, FlowEngine.IO_TASK_EXECUTOR)
                         .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr));
             };
         }
