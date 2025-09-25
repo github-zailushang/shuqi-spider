@@ -21,7 +21,7 @@ public interface Flow<T, R> {
 
     // 启动此任务
     default R start(T t) {
-        return head().execute(t).join();
+        return head().apply(t).join();
     }
 
     /**

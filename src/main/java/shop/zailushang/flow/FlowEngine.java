@@ -44,28 +44,33 @@ public class FlowEngine implements AutoCloseable {
     public void start(String bookName) {
         log.info("敕令：「天地自然，秽气分散！洞中玄虚，晃朗太元！焚香启告，迳达九天！今开法坛。一请，三清道祖垂慈，二请，四御天尊降鉴！三请，雷部将帅听宣，四请，五营神兵列阵！坛场肃靖，万神拱卫！急急如律令！」");
 
-        // 获取 bid 流程
-        var bidFlow = Flow.Flows.bidFlow();
-        log.info("敕令：「一笔天地动，风雷随法涌。」");
-        // 获取章节列表流程
-        var chapterFlow = Flow.Flows.chapterFlow();
-        log.info("敕令：「二笔祖师剑，神威降尘寰。」");
-        // 组装并启动流程
-        var downloads = bidFlow.thenAsync(chapterFlow)
-                .start(bookName);
-        // 获取章节内容流程
-        var contentListFlow = Flow.Flows.contentListFlow();
-        log.info("敕令：「三笔凶神灭，煞气皆溃裂。」");
-        // 启动获取章节内容流程
-        var sources = contentListFlow.start(downloads);
-        // 执行文件合并流程
-        var mergedFlow = Flow.Flows.mergeFlow();
-        log.info("敕令：「四笔煞无形，乾坤朗朗清。」");
-        mergedFlow.start(sources);
+        try {
+            // 获取 bid 流程
+            var bidFlow = Flow.Flows.bidFlow();
+            log.info("敕令：「一笔天地动，风雷随法涌。」");
+            // 获取章节列表流程
+            var chapterFlow = Flow.Flows.chapterFlow();
+            log.info("敕令：「二笔祖师剑，神威降尘寰。」");
+            // 组装并启动流程
+            var downloads = bidFlow.thenAsync(chapterFlow)
+                    .start(bookName);
+            // 获取章节内容流程
+            var contentListFlow = Flow.Flows.contentListFlow();
+            log.info("敕令：「三笔凶神灭，煞气皆溃裂。」");
+            // 启动获取章节内容流程
+            var sources = contentListFlow.start(downloads);
+            // 执行文件合并流程
+            var mergedFlow = Flow.Flows.mergeFlow();
+            log.info("敕令：「四笔煞无形，乾坤朗朗清。」");
+            mergedFlow.start(sources);
+        } catch (Exception e) {
+            log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
+            throw e;
+        }
 
         // 关闭文件通道
         BookCache.removeFileChannel(bookName);
-        log.info("敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「收」");
+        log.info("敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」");
     }
 
     public void end() {

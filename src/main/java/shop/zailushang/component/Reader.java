@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 组件：发送请求，获取响应文本
@@ -16,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 @FunctionalInterface
 public interface Reader<T, R> extends Task<T, R> {
     @Override
-    default CompletableFuture<R> execute(T param) {
+    default CompletableFuture<R> execute(T param) throws Exception {
         return read(param);
     }
 
-    CompletableFuture<R> read(T param);
+    CompletableFuture<R> read(T param) throws Exception;
 
     // 发送请求,获取响应文本
     static CompletableFuture<String> read0(String uri) {
@@ -31,28 +30,6 @@ public interface Reader<T, R> extends Task<T, R> {
 
         return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApplyAsync(HttpResponse::body, FlowEngine.IO_TASK_EXECUTOR);
-    }
-
-    // 流控专员
-    static <T, R> Reader<T, R> rateLimitedRead(Reader<? super T, ? extends R> innerReader, long timeout) {
-        return uri -> {
-            // 流控 -- start
-            try {
-                // 别改！别改！别改！后果自负！！！
-                FlowEngine.SEMAPHORE.acquire();
-                // 直接休眠指定秒数，这里就不额外计算了，徒添复杂度
-                TimeUnit.SECONDS.sleep(timeout);
-                // 需阻塞等待任务结束
-                var result = innerReader.execute(uri)
-                        .join();
-                return CompletableFuture.completedFuture(result);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } finally {
-                FlowEngine.SEMAPHORE.release();
-            }
-            // 流控 -- end
-        };
     }
 
     // 组件名
@@ -109,9 +86,9 @@ public interface Reader<T, R> extends Task<T, R> {
                 var chapterName = chapter4Read.chapterName();
                 var chapterOrdid = chapter4Read.chapterOrdid();
 
-                // 流控移至专员处理 rateLimitedRead
+                // 流控移至专员处理 withRateLimit
                 return CompletableFuture.completedFuture(contentUri)
-                        .thenComposeAsync(Reader.<String, String>rateLimitedRead(Reader::read0, FlowEngine.TIMEOUT)::execute, FlowEngine.IO_TASK_EXECUTOR)
+                        .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
                         .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr));
             };
         }

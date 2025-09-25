@@ -16,11 +16,11 @@ import java.util.stream.IntStream;
 @FunctionalInterface
 public interface Parser<T, R> extends Task<T, R> {
     @Override
-    default CompletableFuture<R> execute(T source) {
+    default CompletableFuture<R> execute(T source) throws Exception {
         return parse(source);
     }
 
-    CompletableFuture<R> parse(T source);
+    CompletableFuture<R> parse(T source) throws Exception;
 
     @SuppressWarnings("unused")
     static <V> Parser<V, V> identity() {
@@ -69,39 +69,34 @@ public interface Parser<T, R> extends Task<T, R> {
 
             return chapterSource -> {
                 log.info("{} - 执行解析章节列表操作", Parser.name());
-                try {
-                    var jsonNode = new ObjectMapper().readTree(chapterSource);
-                    // 章节列表
-                    var chapterList = jsonNode.get("chapterList");
+                var jsonNode = new ObjectMapper().readTree(chapterSource);
+                // 章节列表
+                var chapterList = jsonNode.get("chapterList");
 
-                    // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}
-                    return CompletableFuture.completedFuture(
-                            IntStream.range(0, chapterList.size())
-                                    .mapToObj(chapterList::get)
-                                    .map(volumeOuter -> volumeOuter.get("volumeList"))
-                                    .flatMap(volumes -> IntStream.range(0, volumes.size())
-                                            .mapToObj(volumes::get)
-                                            .toList()
-                                            .stream())
-                                    .peek(chapter -> {
-                                        // 剔除忽略属性
-                                        ignoreProperties.forEach(property -> ((ObjectNode) chapter).remove(property));
-                                        // 添加外层属性
-                                        addProperties.forEach(property -> ((ObjectNode) chapter).putIfAbsent(property, jsonNode.get(property)));
-                                    })
-                                    .map(chapterJsonNode -> {
-                                        try {
-                                            return new ObjectMapper().treeToValue(chapterJsonNode, Chapter.Chapter4Read.class);
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    })
-                                    .toList()
-                    );
-                } catch (Exception e) {
-                    log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
-                    throw new RuntimeException(e);
-                }
+                // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}
+                return CompletableFuture.completedFuture(
+                        IntStream.range(0, chapterList.size())
+                                .mapToObj(chapterList::get)
+                                .map(volumeOuter -> volumeOuter.get("volumeList"))
+                                .flatMap(volumes -> IntStream.range(0, volumes.size())
+                                        .mapToObj(volumes::get)
+                                        .toList()
+                                        .stream())
+                                .peek(chapter -> {
+                                    // 剔除忽略属性
+                                    ignoreProperties.forEach(property -> ((ObjectNode) chapter).remove(property));
+                                    // 添加外层属性
+                                    addProperties.forEach(property -> ((ObjectNode) chapter).putIfAbsent(property, jsonNode.get(property)));
+                                })
+                                .map(chapterJsonNode -> {
+                                    try {
+                                        return new ObjectMapper().treeToValue(chapterJsonNode, Chapter.Chapter4Read.class);
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                })
+                                .toList()
+                );
             };
         }
 

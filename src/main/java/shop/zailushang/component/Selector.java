@@ -12,11 +12,11 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface Selector<T, R> extends Task<T, R> {
     @Override
-    default CompletableFuture<R> execute(T doc) {
+    default CompletableFuture<R> execute(T doc) throws Exception {
         return select(doc);
     }
 
-    CompletableFuture<R> select(T doc);
+    CompletableFuture<R> select(T doc) throws Exception;
 
     @SuppressWarnings("unused")
     static <T> Selector<T, T> identity() {
@@ -67,8 +67,6 @@ public interface Selector<T, R> extends Task<T, R> {
 
         // 章节内容元素选择器
         public static Selector<Chapter.Chapter4Select, Chapter.Chapter4Parse> contentSelector() {
-            // 不方便加日志，弃用
-//            return Selector.identity();
             // 章节内容直接为 json 字符串，无需额外选择器，走个流程
             return chapter4Select -> {
                 log.info("{} - 执行选择章节内容元素操作", Selector.name());

@@ -16,11 +16,11 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merge> {
     @Override
-    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Write chapter) {
+    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Write chapter) throws Exception {
         return write(chapter);
     }
 
-    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Write chapter);
+    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Write chapter) throws Exception;
 
     // 组件名
     static String name() {
@@ -59,28 +59,23 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
                 var folderPath = BookCache.getFolderPath(bookName);
                 // 文件路径
                 var filePath = BookCache.getFilePath(bookName, chapterOrdid);
-                try {
-                    /*
-                     * 此处为并发环境, double check 以创建文件夹，实则是多余操作
-                     * Files.createDirectories(folderPath) 行为：不存在则创建，存在时则不作任何操作，故为线程安全的操作
-                     * 多余的判断行为姑且就算做是用于提醒注意当前操作环境吧
-                     */
-                    if (Files.notExists(folderPath)) {
-                        // 使用 String 作为锁对象时，intern 确保使用同一对象
-                        synchronized (bookName.intern()) {
-                            if (Files.notExists(folderPath)) Files.createDirectories(folderPath);
-                        }
+                /*
+                 * 此处为并发环境, double check 以创建文件夹，实则是多余操作
+                 * Files.createDirectories(folderPath) 行为：不存在则创建，存在时则不作任何操作，故为线程安全的操作
+                 * 多余的判断行为姑且就算做是用于提醒注意当前操作环境吧
+                 */
+                if (Files.notExists(folderPath)) {
+                    // 使用 String 作为锁对象时，intern 确保使用同一对象
+                    synchronized (bookName.intern()) {
+                        if (Files.notExists(folderPath)) Files.createDirectories(folderPath);
                     }
-                    // 执行文件写入
-                    Files.writeString(filePath, chapter.chapterContext(), StandardCharsets.UTF_8);
-                    // 写入完成后打开只读文件通道
-                    var fileChannel = FileChannel.open(filePath, StandardOpenOption.READ);
-                    var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), fileChannel, bookName);
-                    return CompletableFuture.completedFuture(chapter4Merge);
-                } catch (Exception e) {
-                    log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
-                    throw new RuntimeException(e);
                 }
+                // 执行文件写入
+                Files.writeString(filePath, chapter.chapterContext(), StandardCharsets.UTF_8);
+                // 写入完成后打开只读文件通道
+                var fileChannel = FileChannel.open(filePath, StandardOpenOption.READ);
+                var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), fileChannel, bookName);
+                return CompletableFuture.completedFuture(chapter4Merge);
             };
         }
     }

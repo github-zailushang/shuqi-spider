@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4Write> {
 
     @Override
-    default CompletableFuture<Chapter.Chapter4Write> execute(Chapter.Chapter4Format chapter) {
+    default CompletableFuture<Chapter.Chapter4Write> execute(Chapter.Chapter4Format chapter) throws Exception {
         return format(chapter);
     }
 
-    CompletableFuture<Chapter.Chapter4Write> format(Chapter.Chapter4Format chapter);
+    CompletableFuture<Chapter.Chapter4Write> format(Chapter.Chapter4Format chapter) throws Exception;
 
     // 组件名
     static String name() {

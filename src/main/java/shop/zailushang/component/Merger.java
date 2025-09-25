@@ -18,11 +18,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Merger extends Task<List<Chapter.Chapter4Merge>, IOForkJoinTask.Result> {
 
     @Override
-    default CompletableFuture<IOForkJoinTask.Result> execute(List<Chapter.Chapter4Merge> sources) {
+    default CompletableFuture<IOForkJoinTask.Result> execute(List<Chapter.Chapter4Merge> sources) throws Exception {
         return merge(sources);
     }
 
-    CompletableFuture<IOForkJoinTask.Result> merge(List<Chapter.Chapter4Merge> sources);
+    CompletableFuture<IOForkJoinTask.Result> merge(List<Chapter.Chapter4Merge> sources) throws Exception;
 
     // 组件名
     static String name() {

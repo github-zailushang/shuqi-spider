@@ -65,9 +65,8 @@ public class BookCache {
     // 删除文件通道
     public static void removeFileChannel(String bookName) {
         FILE_CHANNEL_MAP.computeIfPresent(bookName, (k, v) -> {
-            try {
-                // 关闭文件通道
-                v.close();
+            // 关闭文件通道
+            try (v) {
                 // 删除文件通道缓存
                 return null;
             } catch (Exception e) {
