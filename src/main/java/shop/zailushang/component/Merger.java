@@ -10,8 +10,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * 组件：执行文件合并操作
- * 这里在文件成功合并后，之前零散的章节本可以直接删除，但基于安全考虑
- * 删除文件是个不安全的行为，尤其还是删除别人的文件，所以呢，我这就不删了，文件合并后，自己手动删一下文件就行
  */
 @FunctionalInterface
 public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapter4Clean> {

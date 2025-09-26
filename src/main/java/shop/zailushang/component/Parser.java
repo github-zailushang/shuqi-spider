@@ -49,8 +49,6 @@ public interface Parser<T, R> extends Task<T, R> {
 
         // bid解析器
         public static Parser<String, String> bidParser() {
-            // 不方便加日志，弃用
-//            return Parser.identity();
             // bid 无需额外解析，只是过个流程
             return source -> {
                 log.info("{} - 执行解析bid内容操作", Parser.name());
