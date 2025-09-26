@@ -42,6 +42,11 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         return t -> execute(t).thenComposeAsync(next, FlowEngine.IO_TASK_EXECUTOR);
     }
 
+    @SuppressWarnings("unused")
+    static <T> Task<T, T> identity() {
+        return CompletableFuture::completedFuture;
+    }
+
     /*
      * 流控任务专员（装饰器模式）
      */
