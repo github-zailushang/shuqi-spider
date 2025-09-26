@@ -33,6 +33,8 @@ flowchart TD
     -.-> Decoder([Decoder：执行文本解密])
     -.-> Formatter([Formatter：执行文本格式化])
     -.-> Writer([Writer：执行文件写入])
+    -.-> Merger([Merger：执行文件合并])
+    -.-> Cleaner([Cleaner：执行零散章节文件删除])
 ```
 
 ```mermaid
@@ -45,6 +47,8 @@ sequenceDiagram
 	participant Decoder
 	participant Formatter
 	participant Writer
+	participant Merger
+	participant Cleaner
 
     Flow->>+Reader: read()
     Reader-->>-Flow: 返回响应文本
@@ -63,6 +67,12 @@ sequenceDiagram
     
     Flow->>+Writer: write()
     Writer-->>-Flow: 返回写入完成的文件列表
+    
+    Flow->>+Merger: merge()
+    Merger-->>-Flow: 返回合并完成的文件列表
+    
+    Flow->>+Cleaner: clean()
+    Cleaner-->>-Flow: 返回为空
 ```
 
 ```mermaid
@@ -72,7 +82,7 @@ title: Merger(文件合并器)运行原理(IOForkJoinTask)
 flowchart TD
 	taskStart((开始))
     compute([task#compute])
-    needsFork{task#needsFork}
+    needFork{task#needFork}
     fork([task#fork])
     noFork([task#doCompute])
     join([task#join])
@@ -81,9 +91,9 @@ flowchart TD
     taskEnd((结束))
 
     taskStart --提交异步任务--> compute
-    compute --执行判断--> needsFork
-    needsFork --是--> fork
-    needsFork --否--> noFork
+    compute --执行判断--> needFork
+    needFork --是--> fork
+    needFork --否--> noFork
     noFork --计算任务结果直接返回--> taskEnd
     fork --> task1
     fork --> task2
