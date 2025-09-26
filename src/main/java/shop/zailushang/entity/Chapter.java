@@ -1,6 +1,8 @@
 package shop.zailushang.entity;
 
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.util.List;
 
 // 章节内容
 public class Chapter {
@@ -30,9 +32,13 @@ public class Chapter {
     }
 
     // 文件合并时
-    public record Chapter4Merge(Integer orderId, FileChannel fileChannel, String bookName, Long skip) {
-        public Chapter4Merge(Integer orderId, FileChannel fileChannel, String bookName) {
-            this(orderId, fileChannel, bookName, -1L);
+    public record Chapter4Merge(Integer orderId, Path filePath, FileChannel fileChannel, String bookName, Long skip) {
+        public Chapter4Merge(Integer orderId, Path filePath, FileChannel fileChannel, String bookName) {
+            this(orderId, filePath, fileChannel, bookName, -1L);
         }
+    }
+
+    // 清理时
+    public record Chapter4Clean(String bookName, List<Path> paths) {
     }
 }

@@ -1,12 +1,11 @@
 package shop.zailushang.flow;
 
 import shop.zailushang.component.*;
+import shop.zailushang.component.Formatter;
 import shop.zailushang.utils.Assert;
 import shop.zailushang.entity.Chapter;
-import shop.zailushang.utils.IOForkJoinTask;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
@@ -25,16 +24,14 @@ public interface Flow<T, R> {
     }
 
     /**
-     * 其中 CompletableFuture::completedFuture 等价于 t -> CompletableFuture.completedFuture(t)
-     * 对应 flow 的头结点： 对传入的类型包装成 CompletableFuture并返回
+     * 将传入的类型包装成 CompletableFuture
      */
     static <T> Flow<T, T> identity() {
         return () -> CompletableFuture::completedFuture;
     }
 
     /**
-     * 根据 章节列表flow 返回的条目，来生成对应数量的，下载章节流程
-     * 因为后续的下载章节流程对应的是一条章节，需要将章节列表处理成 N 条下载章节流程
+     * 根据章节列表flow 返回的条目，来生成对应数量的，下载章节流程（因后续的下载章节流程对应的是一条章节，需要将章节列表处理成 N 条下载章节流程）
      */
     static <T> List<Flow<T, T>> startParallel(Integer size) {
         return IntStream.range(0, size)
@@ -42,13 +39,18 @@ public interface Flow<T, R> {
                 .toList();
     }
 
+    /**
+     * 流程组装：同步调用链
+     */
     @SuppressWarnings("unused")
     default <V> Flow<T, V> then(Flow<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
         return () -> head().then(next.head());
     }
 
-    // 每条flow 由多个 task#then 组装而成，而 flow 和 flow 之间的 then，实则也是用 头结点的 then 来组装
+    /**
+     * 流程组装：异步调用链
+     */
     default <V> Flow<T, V> thenAsync(Flow<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
         return () -> head().thenAsync(next.head());
@@ -101,7 +103,7 @@ public interface Flow<T, R> {
                                     try {
                                         // 这里设置每章的 skip 跳过字节数，因为用了 recode，final 类设计，无 setter可用，只能我转我自己，多了 skip : atoLong.getAndAdd(size)
                                         var size = merge.fileChannel().size();
-                                        return new Chapter.Chapter4Merge(merge.orderId(), merge.fileChannel(), merge.bookName(), atoLong.getAndAdd(size));
+                                        return new Chapter.Chapter4Merge(merge.orderId(), merge.filePath(), merge.fileChannel(), merge.bookName(), atoLong.getAndAdd(size));
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }
@@ -122,8 +124,9 @@ public interface Flow<T, R> {
         }
 
         // 完整 合并文件 的流程组装
-        public static Flow<List<Chapter.Chapter4Merge>, IOForkJoinTask.Result> mergeFlow() {
-            return Merger.Mergers::fileMerger;
+        public static Flow<List<Chapter.Chapter4Merge>, Void> mergeFlow() {
+            return () -> Merger.Mergers.fileMerger()
+                    .thenAsync(Cleaner.Cleaners.fileCleaner());
         }
     }
 }

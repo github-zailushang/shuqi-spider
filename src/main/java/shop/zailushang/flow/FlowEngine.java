@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
+    // 删除文件标识
+    public static final boolean NEED_DELETE = true;
     // 休眠时间
     public static final long TIMEOUT = 2L;
     // io密集型任务线程池 ：使用虚拟线程池
@@ -44,17 +46,17 @@ public class FlowEngine implements AutoCloseable {
     public void start(String bookName) {
         log.info("""
                 敕令：「
-                        天地自然，秽气分散！
-                        洞中玄虚，晃朗太元！
-                        焚香启告，迳达九天！
-                        今开法坛。
-                        一请，三清道祖垂慈，
-                        二请，四御天尊降鉴！
-                        三请，雷部将帅听宣，
-                        四请，五营神兵列阵！
-                        坛场肃靖，万神拱卫！
-                        急急如律令！
-                」
+                                                              天地自然，秽气分散！
+                                                              洞中玄虚，晃朗太元！
+                                                              焚香启告，迳达九天！
+                                                              今开法坛：
+                                                              一请，三清道祖垂慈！
+                                                              二请，四御天尊降鉴！
+                                                              三请，雷部将帅听宣！
+                                                              四请，五营神兵列阵！
+                                                              坛场肃靖，万神拱卫！
+                                                              急急如律令！！！
+                                                            」
                 """);
 
         try {

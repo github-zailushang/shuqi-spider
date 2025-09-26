@@ -21,7 +21,7 @@ public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4
 
     // 组件名
     static String name() {
-        return "「排」";
+        return "「椠」";
     }
 
     @Slf4j

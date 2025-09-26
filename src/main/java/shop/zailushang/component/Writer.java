@@ -74,7 +74,7 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
                 Files.writeString(filePath, chapter.chapterContext(), StandardCharsets.UTF_8);
                 // 写入完成后打开只读文件通道
                 var fileChannel = FileChannel.open(filePath, StandardOpenOption.READ);
-                var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), fileChannel, bookName);
+                var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), filePath, fileChannel, bookName);
                 return CompletableFuture.completedFuture(chapter4Merge);
             };
         }

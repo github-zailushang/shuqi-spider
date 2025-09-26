@@ -42,18 +42,18 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         return t -> execute(t).thenComposeAsync(next, FlowEngine.IO_TASK_EXECUTOR);
     }
 
-    // 流控任务专员
+    /*
+     * 流控任务专员（装饰器模式）
+     */
     static <T, R> Task<T, ? extends R> withRateLimit(Task<? super T, R> innerTask, long timeout) {
+        Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do.” — Steve Jobs"));
         return uri -> {
-            // 流控 -- start
             // 别改！别改！别改！后果自负！！！
             FlowEngine.SEMAPHORE.acquire();
             // 直接休眠指定秒数，这里就不额外计算了，徒添复杂度
             TimeUnit.SECONDS.sleep(timeout);
             // 需阻塞等待任务结束
-            return innerTask.execute(uri)
-                    .whenComplete((r, e) -> FlowEngine.SEMAPHORE.release());
-            // 流控 -- end
+            return innerTask.execute(uri).whenComplete((r, e) -> FlowEngine.SEMAPHORE.release());
         };
     }
 }

@@ -2,10 +2,10 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.utils.Assert;
 import shop.zailushang.utils.ScriptEnginePool;
 
 import javax.script.Invocable;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,7 +38,8 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
                 // 调用 js引擎池 解密章节内容
                 var scriptEngine = ScriptEnginePool.acquire();
                 log.info("{} - 执行解密操作", Decoder.name());
-                var ciphertext = Optional.ofNullable(chapter4Decode.ciphertext()).orElseThrow(() -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。"));
+                var ciphertext = chapter4Decode.ciphertext();
+                Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。"));
                 var unformattedChapterContent = (String) ((Invocable) scriptEngine).invokeFunction("_decode", ciphertext);
                 // 归还 js引擎对象
                 ScriptEnginePool.release(scriptEngine);

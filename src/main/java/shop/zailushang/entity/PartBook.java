@@ -21,7 +21,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
                        ExecutorService executor) implements IOForkJoinTask<PartBook> {
 
     public String name() {
-        return "「「「器之三」」」";
+        return "「器三」";
     }
 
     // 默认每个线程处理 100章内容
@@ -46,9 +46,8 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
                 .skip(startIndex - 1)
                 .limit(endIndex - startIndex + 1)
                 .forEach(chapter4Merge -> {
-                    var sourceChannel = chapter4Merge.fileChannel();
                     var skip = chapter4Merge.skip();
-                    try (sourceChannel) {
+                    try (var sourceChannel = chapter4Merge.fileChannel()) {
                         var mappedByteBuffer = sourceChannel.map(FileChannel.MapMode.READ_ONLY, 0, sourceChannel.size());
                         var byteSize = targetFileChannel.write(mappedByteBuffer, skip);
                         atoLong.addAndGet(byteSize);

@@ -8,11 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * 仿 ForkJoinPool 思路实现 IO密集型任务分治
- * 为何使用它？
- * Stream并行流，ForkJoinPool 同理，针对的场景是 CPU密集型任务（Stream并行流内部使用的就是ForkJoinPool）
- * 文件写入属于IO密集型任务，明显不在此列，不是不能用，而是不合适，故而，文件IO、网络IO，我们应该使用自定义的IO型线程池
- * 再将任务拆分算法封装、提交线程池代码按照 ForkJoinPool 思想封装，终有此工具类
+ * 用于IO密集型任务分治的工具类
  */
 public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
 
@@ -21,7 +17,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     }
 
     static String name() {
-        return "「「「器之二」」」";
+        return "「器二」";
     }
 
     // 线程池
@@ -37,13 +33,13 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     Integer capacity();
 
     // 是否需要拆分（超出预期可处理数量）
-    default Boolean needsFork() {
+    default Boolean needFork() {
         return (endIndex() - startIndex() + 1) > capacity();
     }
 
     // 要在线程内执行的任务的起始点
     default Result compute() {
-        return needsFork() ? join(fork()) : doCompute();
+        return needFork() ? join(fork()) : doCompute();
     }
 
     // 执行具体的任务操作由子类实现
