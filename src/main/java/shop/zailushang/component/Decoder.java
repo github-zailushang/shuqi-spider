@@ -30,7 +30,7 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
     class Decoders {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Decoder.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Decoder.name());
         }
 
         public static Decoder contentDecoder() {

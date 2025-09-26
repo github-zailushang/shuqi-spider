@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.utils.BookCache;
 
 import java.nio.channels.FileChannel;
@@ -27,11 +28,43 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         return "「录」";
     }
 
+    static CompletableFuture<Chapter.Chapter4Merge> write0(Chapter.Chapter4Write chapter) {
+        // 书名
+        var bookName = chapter.bookName();
+        // chapterOrdid 章节序号 为 1 - N 的连续自然数
+        var chapterOrdid = chapter.chapterOrdid();
+        // 文件夹路径
+        var folderPath = BookCache.getFolderPath(bookName);
+        // 文件路径
+        var filePath = BookCache.getFilePath(bookName, chapterOrdid);
+        try {
+            /*
+             * 此处为并发环境, double check 以创建文件夹，实则是多余操作
+             * Files.createDirectories(folderPath) 行为：不存在则创建，存在时则不作任何操作，故为线程安全的操作
+             * 多余的判断行为姑且就算做是用于提醒注意当前操作环境吧
+             */
+            if (Files.notExists(folderPath)) {
+                // 使用 String 作为锁对象时，intern 确保使用同一对象
+                synchronized (bookName.intern()) {
+                    if (Files.notExists(folderPath)) Files.createDirectories(folderPath);
+                }
+            }
+            // 执行文件写入
+            Files.writeString(filePath, chapter.chapterContext(), StandardCharsets.UTF_8);
+            // 写入完成后打开只读文件通道
+            var fileChannel = FileChannel.open(filePath, StandardOpenOption.READ);
+            var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), filePath, fileChannel, bookName);
+            return CompletableFuture.completedFuture(chapter4Merge);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Slf4j
     class Writers {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Writer.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Writer.name());
         }
 
         // 将章节内容打印在控制台，调试时用
@@ -49,34 +82,10 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
 
         // 将章节内容写入文件
         public static Writer fileWriter() {
-            return chapter -> {
-                log.info("{} - 执行文件写入操作[文件系统]", Writer.name());
-                // 书名
-                var bookName = chapter.bookName();
-                // chapterOrdid 章节序号 为 1 - N 的连续自然数
-                var chapterOrdid = chapter.chapterOrdid();
-                // 文件夹路径
-                var folderPath = BookCache.getFolderPath(bookName);
-                // 文件路径
-                var filePath = BookCache.getFilePath(bookName, chapterOrdid);
-                /*
-                 * 此处为并发环境, double check 以创建文件夹，实则是多余操作
-                 * Files.createDirectories(folderPath) 行为：不存在则创建，存在时则不作任何操作，故为线程安全的操作
-                 * 多余的判断行为姑且就算做是用于提醒注意当前操作环境吧
-                 */
-                if (Files.notExists(folderPath)) {
-                    // 使用 String 作为锁对象时，intern 确保使用同一对象
-                    synchronized (bookName.intern()) {
-                        if (Files.notExists(folderPath)) Files.createDirectories(folderPath);
-                    }
-                }
-                // 执行文件写入
-                Files.writeString(filePath, chapter.chapterContext(), StandardCharsets.UTF_8);
-                // 写入完成后打开只读文件通道
-                var fileChannel = FileChannel.open(filePath, StandardOpenOption.READ);
-                var chapter4Merge = new Chapter.Chapter4Merge(Integer.valueOf(chapter.chapterOrdid()), filePath, fileChannel, bookName);
-                return CompletableFuture.completedFuture(chapter4Merge);
-            };
+            return chapter -> CompletableFuture.completedFuture(chapter)
+                    .whenComplete((chapter4Merge, throwable) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()))
+                    .thenComposeAsync(Writer::write0, FlowEngine.IO_TASK_EXECUTOR)
+                    .whenComplete((chapter4Merge, throwable) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()));
         }
     }
 }

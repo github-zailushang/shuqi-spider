@@ -17,7 +17,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     }
 
     static String name() {
-        return "「器二」";
+        return "「天蓬尺」";
     }
 
     // 线程池

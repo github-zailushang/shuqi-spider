@@ -22,11 +22,6 @@ public interface Parser<T, R> extends Task<T, R> {
 
     CompletableFuture<R> parse(T source) throws Exception;
 
-    @SuppressWarnings("unused")
-    static <V> Parser<V, V> identity() {
-        return CompletableFuture::completedFuture;
-    }
-
     static <T> T jsonParser(String json, Class<T> clazz) {
         try {
             return new ObjectMapper().readValue(json, clazz);
@@ -44,7 +39,7 @@ public interface Parser<T, R> extends Task<T, R> {
     class Parsers {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Parser.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Parser.name());
         }
 
         // bid解析器

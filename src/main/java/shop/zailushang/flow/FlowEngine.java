@@ -45,7 +45,7 @@ public class FlowEngine implements AutoCloseable {
     // 组装串联流程
     public void start(String bookName) {
         log.info("""
-                敕令：「
+                \u001B[93m敕令：「
                                                               天地自然，秽气分散！
                                                               洞中玄虚，晃朗太元！
                                                               焚香启告，迳达九天！
@@ -56,40 +56,40 @@ public class FlowEngine implements AutoCloseable {
                                                               四请，五营神兵列阵！
                                                               坛场肃靖，万神拱卫！
                                                               急急如律令！！！
-                                                            」
+                                                            」\u001B[0m
                 """);
 
         try {
             // 获取 bid 流程
             var bidFlow = Flow.Flows.bidFlow();
-            log.info("敕令：「一笔天地动，风雷随法涌。」");
+            log.info("\u001B[93m敕令：「一笔天地动，风雷随法涌。」\u001B[0m");
             // 获取章节列表流程
             var chapterFlow = Flow.Flows.chapterFlow();
-            log.info("敕令：「二笔祖师剑，神威降尘寰。」");
+            log.info("\u001B[93m敕令：「二笔祖师剑，神威降尘寰。」\u001B[0m");
             // 组装并启动流程
             var downloads = bidFlow.thenAsync(chapterFlow)
                     .start(bookName);
             // 获取章节内容流程
             var contentListFlow = Flow.Flows.contentListFlow();
-            log.info("敕令：「三笔凶神灭，煞气皆溃裂。」");
+            log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
             // 启动获取章节内容流程
             var sources = contentListFlow.start(downloads);
             // 执行文件合并流程
             var mergedFlow = Flow.Flows.mergeFlow();
-            log.info("敕令：「四笔煞无形，乾坤朗朗清。」");
+            log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
             mergedFlow.start(sources);
         } catch (Exception e) {
-            log.error("敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」");
+            log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
             throw e;
         }
 
         // 关闭文件通道
         BookCache.removeFileChannel(bookName);
-        log.info("敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」");
+        log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
     }
 
     public void end() {
-        log.info("敕令：「香云奉送，祖师归坛；神兵返驾，各归玄庭！弟子稽首，再沐恩光！散坛！」");
+        log.info("\u001B[92m敕令：「香云奉送，祖师归坛；神兵返驾，各归玄庭！弟子稽首，再沐恩光！散坛！」\u001B[0m");
         FlowEngine.HTTP_CLIENT.close();
         FlowEngine.IO_TASK_EXECUTOR.shutdown();
     }

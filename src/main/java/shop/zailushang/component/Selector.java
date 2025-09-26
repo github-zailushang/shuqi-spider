@@ -18,11 +18,6 @@ public interface Selector<T, R> extends Task<T, R> {
 
     CompletableFuture<R> select(T doc) throws Exception;
 
-    @SuppressWarnings("unused")
-    static <T> Selector<T, T> identity() {
-        return CompletableFuture::completedFuture;
-    }
-
     // 组件名
     static String name() {
         return "「择」";
@@ -32,7 +27,7 @@ public interface Selector<T, R> extends Task<T, R> {
     class Selectors {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Selector.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Selector.name());
         }
 
         // bid元素选择器

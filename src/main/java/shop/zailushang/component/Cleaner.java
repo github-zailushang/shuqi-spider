@@ -41,7 +41,7 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
     class Cleaners {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Cleaner.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Cleaner.name());
         }
 
         public static Cleaner fileCleaner() {

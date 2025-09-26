@@ -38,17 +38,16 @@ public interface Reader<T, R> extends Task<T, R> {
     }
 
     /**
-     * 工厂类： 使用静态工厂 && 策略
-     * 这里甚至还是"单例"，使用 lambda 表达式创建对象，在不依赖外部状态的情况下（纯函数），返回的对象始终为同一个
-     * 所以，即使多次调用 bidReader(),返回的也是同一个对象,一旦涉及到外部状态，那就会重复生成对象了
-     * 后续：{@link Selector.Selectors} {@link Parser.Parsers} {@link Decoder.Decoders}
-     * {@link Formatter.Formatters} {@link Writer.Writers} 同理，不再重复注释
+     * 工厂类： 使用静态工厂 && 策略 && 伪单例（但需为纯函数），下同
+     * {@link Reader.Readers}   {@link Selector.Selectors}  {@link Parser.Parsers}
+     * {@link Decoder.Decoders} {@link Formatter.Formatters} {@link Writer.Writers}
+     * {@link Merger.Mergers} {@link Cleaner.Cleaners} {@link shop.zailushang.flow.Flow.Flows}
      */
     @Slf4j
     class Readers {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Reader.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Reader.name());
         }
 
         // 获取bid的http请求器

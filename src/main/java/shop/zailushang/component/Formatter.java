@@ -28,7 +28,7 @@ public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4
     class Formatters {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Formatter.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Formatter.name());
         }
 
         public static Formatter contentFormatter() {

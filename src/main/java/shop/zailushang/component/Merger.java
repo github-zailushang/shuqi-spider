@@ -30,7 +30,7 @@ public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapte
     class Mergers {
 
         static {
-            log.info("敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}", Merger.name());
+            log.info("\u001B[35m敕令：「天圆地方，律令九章，吾今下笔，万鬼伏藏。」 ~ {}\u001B[0m", Merger.name());
         }
 
         public static Merger fileMerger() {
