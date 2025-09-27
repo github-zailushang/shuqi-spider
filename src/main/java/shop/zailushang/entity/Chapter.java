@@ -7,8 +7,7 @@ import java.util.List;
 // 章节内容
 public class Chapter {
     // 下载时
-    public record Chapter4Read(String authorName, String bookName, String chapterId, String chapterName,
-                               String contUrlSuffix, String chapterOrdid) {
+    public record Chapter4Read(String bookName, String chapterId, String chapterName, String contUrlSuffix, String chapterOrdid) {
     }
 
     // 选择时

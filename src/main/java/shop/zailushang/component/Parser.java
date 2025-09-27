@@ -1,7 +1,6 @@
 package shop.zailushang.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.Content;
@@ -53,37 +52,38 @@ public interface Parser<T, R> extends Task<T, R> {
 
         // 章节列表解析器
         public static Parser<String, List<Chapter.Chapter4Read>> chapterParser() {
-            // 从最内层的json对象上移除这些属性，因为后续用不上，如果不手动移除，则要求在转换的对象上有这些属性，否则转json会失败
-            // updated  2024年11月5日 网站新增属性添加至忽略列表 [dateOpen chapterLockDesc vipPriorityRead]
-            var ignoreProperties = List.of("payStatus", "chapterPrice", "wordCount", "chapterUpdateTime",
-                    "shortContUrlSuffix", "oriPrice", "shelf", "isBuy", "isFreeRead", "dateOpen", "chapterLockDesc", "vipPriorityRead");
-            // 提取属性向后传递，构建最终对象，在最内层的json对象上添加此属性
-            var addProperties = List.of("bookName", "authorName");
+            // 需要的属性集合 bookName 在外层，需单独处理
+            var recognizedProperties = List.of("chapterId", "contUrlSuffix", "chapterOrdid", "chapterName");
 
             return chapterSource -> {
                 log.info("{} - 执行解析章节列表操作", Parser.name());
-                var jsonNode = new ObjectMapper().readTree(chapterSource);
+                var objectMapper = new ObjectMapper();
+                // 根节点
+                var rootJsonNode = objectMapper.readTree(chapterSource);
                 // 章节列表
-                var chapterList = jsonNode.get("chapterList");
+                var chapterList = rootJsonNode.get("chapterList");
 
                 // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}
                 return CompletableFuture.completedFuture(
                         IntStream.range(0, chapterList.size())
                                 .mapToObj(chapterList::get)
-                                .map(volumeOuter -> volumeOuter.get("volumeList"))
-                                .flatMap(volumes -> IntStream.range(0, volumes.size())
-                                        .mapToObj(volumes::get)
+                                .map(chapter -> chapter.get("volumeList"))
+                                .flatMap(volumeList -> IntStream.range(0, volumeList.size())
+                                        .mapToObj(volumeList::get)
                                         .toList()
                                         .stream())
-                                .peek(chapter -> {
-                                    // 剔除忽略属性
-                                    ignoreProperties.forEach(property -> ((ObjectNode) chapter).remove(property));
-                                    // 添加外层属性
-                                    addProperties.forEach(property -> ((ObjectNode) chapter).putIfAbsent(property, jsonNode.get(property)));
+                                .map(jsonNode -> {
+                                    // 构建目标 ObjectNode 对象
+                                    var targetObjectNode = objectMapper.createObjectNode();
+                                    // 从根节点添加 bookName 属性
+                                    targetObjectNode.putIfAbsent("bookName", rootJsonNode.get("bookName"));
+                                    // 添加其余属性
+                                    recognizedProperties.forEach(property -> targetObjectNode.putIfAbsent(property, jsonNode.get(property)));
+                                    return targetObjectNode;
                                 })
                                 .map(chapterJsonNode -> {
                                     try {
-                                        return new ObjectMapper().treeToValue(chapterJsonNode, Chapter.Chapter4Read.class);
+                                        return objectMapper.treeToValue(chapterJsonNode, Chapter.Chapter4Read.class);
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }

@@ -44,22 +44,22 @@ public class FlowEngine implements AutoCloseable {
 
     // 组装串联流程
     public void start(String bookName) {
-        log.info("""
-                \u001B[93m敕令：「
-                                                              天地自然，秽气分散！
-                                                              洞中玄虚，晃朗太元！
-                                                              焚香启告，迳达九天！
-                                                              今开法坛：
-                                                              一请，三清道祖垂慈！
-                                                              二请，四御天尊降鉴！
-                                                              三请，雷部将帅听宣！
-                                                              四请，五营神兵列阵！
-                                                              坛场肃靖，万神拱卫！
-                                                              急急如律令！！！
-                                                            」\u001B[0m
-                """);
-
         try {
+            log.info("""
+                    \u001B[93m敕令：「
+                                                                  天地自然，秽气分散！
+                                                                  洞中玄虚，晃朗太元！
+                                                                  焚香启告，迳达九天！
+                                                                  今开法坛：
+                                                                  一请，三清道祖垂慈！
+                                                                  二请，四御天尊降鉴！
+                                                                  三请，雷部将帅听宣！
+                                                                  四请，五营神兵列阵！
+                                                                  坛场肃靖，万神拱卫！
+                                                                  急急如律令！！！
+                                                                」\u001B[0m
+                    """);
+
             // 获取 bid 流程
             var bidFlow = Flow.Flows.bidFlow();
             log.info("\u001B[93m敕令：「一笔天地动，风雷随法涌。」\u001B[0m");
@@ -74,9 +74,10 @@ public class FlowEngine implements AutoCloseable {
             log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
             // 启动获取章节内容流程
             var sources = contentListFlow.start(downloads);
-            // 执行文件合并流程
+            // 获取文件合并流程
             var mergedFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
+            // 启动文件合并流程
             mergedFlow.start(sources);
         } catch (Exception e) {
             log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
