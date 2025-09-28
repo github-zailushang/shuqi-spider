@@ -21,14 +21,6 @@ public interface Parser<T, R> extends Task<T, R> {
 
     CompletableFuture<R> parse(T source) throws Exception;
 
-    static <T> T jsonParser(String json, Class<T> clazz) {
-        try {
-            return new ObjectMapper().readValue(json, clazz);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     // 组件名
     static String name() {
         return "「析」";
@@ -102,7 +94,7 @@ public interface Parser<T, R> extends Task<T, R> {
                 var chapterName = chapter4Parse.chapterName();
                 var chapterOrdid = chapter4Parse.chapterOrdid();
                 var jsonCiphertext = chapter4Parse.jsonCiphertext();
-                var content = Parser.jsonParser(jsonCiphertext, Content.class);
+                var content = new ObjectMapper().readValue(jsonCiphertext, Content.class);
                 // 构建下一步[解密]，需要的对象
                 return CompletableFuture.completedFuture(new Chapter.Chapter4Decode(bookName, chapterName, chapterOrdid, content.ChapterContent()));
             };

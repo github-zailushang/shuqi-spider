@@ -101,9 +101,9 @@ public interface Flow<T, R> {
                                 .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 章节按照 1 ~ N连续自然数顺序 排序
                                 .map(merge -> {
                                     try {
-                                        // 这里设置每章的 skip 跳过字节数，因为用了 recode，final 类设计，无 setter可用，只能我转我自己，多了 skip : atoLong.getAndAdd(size)
+                                        // 设置每章的跳过字节数 skip : atoLong.getAndAdd(size)
                                         var size = merge.fileChannel().size();
-                                        return new Chapter.Chapter4Merge(merge.orderId(), merge.filePath(), merge.fileChannel(), merge.bookName(), atoLong.getAndAdd(size));
+                                        return new Chapter.Chapter4Merge(merge, atoLong.getAndAdd(size));
                                     } catch (Exception e) {
                                         throw new RuntimeException(e);
                                     }

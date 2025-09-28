@@ -88,7 +88,7 @@ public interface Reader<T, R> extends Task<T, R> {
                 // 流控移至专员处理 withRateLimit
                 return CompletableFuture.completedFuture(contentUri)
                         .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
-                        .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr));
+                        .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr), FlowEngine.IO_TASK_EXECUTOR);
             };
         }
     }

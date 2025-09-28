@@ -79,14 +79,14 @@ public class FlowEngine implements AutoCloseable {
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
             // 启动文件合并流程
             mergedFlow.start(sources);
+
+            // 关闭文件通道
+            BookCache.removeFileChannel(bookName);
+            log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
         } catch (Exception e) {
             log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
             throw e;
         }
-
-        // 关闭文件通道
-        BookCache.removeFileChannel(bookName);
-        log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
     }
 
     public void end() {

@@ -24,7 +24,7 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
 
     // js 解密
     @SuppressWarnings("unused")
-    static String withJsDecoder(String ciphertext) {
+    static String withJsDecode(String ciphertext) {
         // 调用 js引擎池 解密章节内容
         var scriptEngine = ScriptEnginePool.acquire();
         try {
@@ -37,7 +37,7 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
     }
 
     // java 本地实现解密（随js脚本更迭）
-    static String withNativeDecoder(String ciphertext) {
+    static String withNativeDecode(String ciphertext) {
         StringBuilder transformed = new StringBuilder();
         for (char c : ciphertext.toCharArray()) {
             if (Character.isLetter(c)) {
@@ -93,7 +93,7 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
                 var ciphertext = chapter4Decode.ciphertext();
                 Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。"));
                 // 改用 java 本地实现的解密方法
-                var unformattedChapterContent = withNativeDecoder(ciphertext);
+                var unformattedChapterContent = withNativeDecode(ciphertext);
                 var chapter4Format = new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent);
                 return CompletableFuture.completedFuture(chapter4Format);
             };
