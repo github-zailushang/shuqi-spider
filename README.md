@@ -99,6 +99,6 @@ flowchart TD
     fork --> task2
     task1 --提交子任务，并阻塞等待子任务返回--> join
     task2 --提交子任务，并阻塞等待子任务返回--> join
-    join -.-> taskStart
+    join -.递归.-> taskStart
     join --合并子任务结果--> taskEnd
 ```
