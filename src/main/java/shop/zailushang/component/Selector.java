@@ -39,8 +39,6 @@ public interface Selector<T, R> extends Task<T, R> {
                     .whenComplete((r, e) -> log.info("{} - 执行选择bid元素操作", Selector.name()))
                     .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(doc -> doc.selectXpath(bidXpath).getFirst().attr("data-bid"), FlowEngine.IO_TASK_EXECUTOR);
-
-
         }
 
         // 章节列表元素选择器
@@ -49,7 +47,7 @@ public interface Selector<T, R> extends Task<T, R> {
             return chapterDoc -> CompletableFuture.completedFuture(chapterDoc)
                     .whenComplete((r, e) -> log.info("{} - 执行选择章节列表元素操作", Selector.name()))
                     .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(doc -> doc.selectXpath(chapterXpath).text());
+                    .thenApplyAsync(doc -> doc.selectXpath(chapterXpath).text(), FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 章节内容元素选择器
@@ -57,7 +55,7 @@ public interface Selector<T, R> extends Task<T, R> {
             // map 2 Chapter4Parse
             return chapter4Select -> CompletableFuture.completedFuture(chapter4Select)
                     .whenComplete((r, e) -> log.info("{} - 执行选择章节内容元素操作", Selector.name()))
-                    .thenApplyAsync(c4s -> new Chapter.Chapter4Parse(c4s.bookName(), c4s.chapterName(), c4s.chapterOrdid(), c4s.jsonCiphertext()));
+                    .thenApplyAsync(c4s -> new Chapter.Chapter4Parse(c4s.bookName(), c4s.chapterName(), c4s.chapterOrdid(), c4s.jsonCiphertext()), FlowEngine.IO_TASK_EXECUTOR);
         }
     }
 }

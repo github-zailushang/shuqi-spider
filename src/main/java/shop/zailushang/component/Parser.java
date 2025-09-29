@@ -49,7 +49,7 @@ public interface Parser<T, R> extends Task<T, R> {
                     .whenComplete((r, e) -> log.info("{} - 执行解析章节列表操作", Parser.name()))
                     .thenApplyAsync(cs -> {
                         // 根节点
-                        var rootJsonNode = JsonUtils.readTree(chapterSource);
+                        var rootJsonNode = JsonUtils.readTree(cs);
                         // 章节列表
                         var chapterList = rootJsonNode.get("chapterList");
                         // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}

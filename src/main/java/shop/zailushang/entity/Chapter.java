@@ -3,11 +3,13 @@ package shop.zailushang.entity;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 // 章节内容
 public class Chapter {
     // 下载时
-    public record Chapter4Read(String bookName, String chapterId, String chapterName, String contUrlSuffix, String chapterOrdid) {
+    public record Chapter4Read(String bookName, String chapterId, String chapterName, String contUrlSuffix,
+                               String chapterOrdid) {
     }
 
     // 选择时
@@ -23,7 +25,8 @@ public class Chapter {
     }
 
     // 排版时
-    public record Chapter4Format(String bookName, String chapterName, String chapterOrdid, String unformattedChapterContent) {
+    public record Chapter4Format(String bookName, String chapterName, String chapterOrdid,
+                                 String unformattedChapterContent) {
     }
 
     // 保存时
@@ -35,8 +38,19 @@ public class Chapter {
         public Chapter4Merge(Chapter4Merge chapter4Merge, Long skip) {
             this(chapter4Merge.orderId, chapter4Merge.filePath, chapter4Merge.fileChannel, chapter4Merge.bookName, skip);
         }
+
         public Chapter4Merge(Integer orderId, Path filePath, FileChannel fileChannel, String bookName) {
             this(orderId, filePath, fileChannel, bookName, -1L);
+        }
+
+        public Chapter4Merge identity(Chapter4Merge chapter4Merge, AtomicLong atomicLong) {
+            try {
+                // 设置每章的跳过字节数 skip : atoLong.getAndAdd(size)
+                var size = chapter4Merge.fileChannel().size();
+                return new Chapter.Chapter4Merge(chapter4Merge, atomicLong.getAndAdd(size));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

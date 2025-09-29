@@ -95,19 +95,10 @@ public interface Flow<T, R> {
                                 .mapToObj(index -> parallelFlows.get(index).start(downloads.get(index)))
                                 .toList();
 
-                        // 排序并设置 skip 属性
                         var atoLong = new AtomicLong(0);
                         sources = sources.stream()
                                 .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 章节按照 1 ~ N连续自然数顺序 排序
-                                .map(merge -> {
-                                    try {
-                                        // 设置每章的跳过字节数 skip : atoLong.getAndAdd(size)
-                                        var size = merge.fileChannel().size();
-                                        return new Chapter.Chapter4Merge(merge, atoLong.getAndAdd(size));
-                                    } catch (Exception e) {
-                                        throw new RuntimeException(e);
-                                    }
-                                })
+                                .map(merge -> merge.identity(merge, atoLong))// 设置 skip 属性
                                 .toList();
                         return CompletableFuture.completedFuture(sources);
                     };

@@ -42,7 +42,6 @@ public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4
                     .thenApplyAsync(stringStream -> stringStream.collect(Collectors.joining("\n")), FlowEngine.IO_TASK_EXECUTOR)// 重新拼接换行
                     .thenApplyAsync(chapterContext -> String.format("%s\n%s\n\n", chapter.chapterName(), chapterContext), FlowEngine.IO_TASK_EXECUTOR)// 拼接章节名，行尾添加两个换行符，方便后续文件合并
                     .thenApplyAsync(chapterContext -> new Chapter.Chapter4Write(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext), FlowEngine.IO_TASK_EXECUTOR);
-
         }
     }
 }
