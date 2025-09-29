@@ -25,7 +25,7 @@ public interface Reader<T, R> extends Task<T, R> {
     static CompletableFuture<String> read0(String uri) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
-                //.header("cookie", "") // 此处添加 VIP账号权限
+//                .header("cookie", "") // 此处添加 VIP账号权限
                 .build();
 
         return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
@@ -54,42 +54,32 @@ public interface Reader<T, R> extends Task<T, R> {
         public static Reader<String, String> bidReader() {
             // 获取BID的请求地址
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
-            return bookName -> {
-                var bidUri = bidUriFormatter.formatted(bookName);
-                log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri);
-                return CompletableFuture.completedFuture(bidUri)
-                        .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
-            };
+            return bookName -> CompletableFuture.completedFuture(bookName)
+                    .thenApplyAsync(bidUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
+                    .whenComplete((bidUri, throwable) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri))
+                    .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 获取章节列表的http请求器
         public static Reader<String, String> chapterReader() {
             // 获取章节列表的请求地址
             final var chapterUriFormatter = "https://www.shuqi.com/reader?bid=%s";
-            return bid -> {
-                var chapterUri = chapterUriFormatter.formatted(bid);
-                log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri);
-                return CompletableFuture.completedFuture(chapterUri)
-                        .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
-            };
+            return bid -> CompletableFuture.completedFuture(bid)
+                    .thenApplyAsync(chapterUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
+                    .whenComplete((chapterUri, throwable) -> log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri))
+                    .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 获取章节内容的http请求器
         public static Reader<Chapter.Chapter4Read, Chapter.Chapter4Select> contentReader() {
             // 获取章节内容请求地址
             final var contentUriFormatter = "https://c13.shuqireader.com/pcapi/chapter/contentfree/%s";
-            return chapter4Read -> {
-                var contentUri = contentUriFormatter.formatted(chapter4Read.contUrlSuffix());
-                log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri);
-                var bookName = chapter4Read.bookName();
-                var chapterName = chapter4Read.chapterName();
-                var chapterOrdid = chapter4Read.chapterOrdid();
-
-                // 流控移至专员处理 withRateLimit
-                return CompletableFuture.completedFuture(contentUri)
-                        .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
-                        .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(bookName, chapterName, chapterOrdid, jsonStr), FlowEngine.IO_TASK_EXECUTOR);
-            };
+            return chapter4Read -> CompletableFuture.completedFuture(chapter4Read)
+                    .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(contentUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
+                    .whenComplete((contentUri, throwable) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri))
+                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), FlowEngine.IO_TASK_EXECUTOR);
         }
     }
 }

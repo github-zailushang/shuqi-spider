@@ -3,6 +3,7 @@ package shop.zailushang.component;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.flow.FlowEngine;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -32,42 +33,31 @@ public interface Selector<T, R> extends Task<T, R> {
 
         // bid元素选择器
         public static Selector<String, String> bidSelector() {
-            // bid 所在的元素地址
-            // <span class="btn js-addShelf disable" data-bid="53258" data-clog="shelf-shelf$$bid=53258">+书架</span>
-            // 网站调整了 bid 元素位置
+            // bid元素所在位置:  <span class="btn js-addShelf disable" data-bid="53258" data-clog="shelf-shelf$$bid=53258">+书架</span>
             final var bidXpath = "/html/body/div[1]/div[3]/div/div[4]/div/span[2]";
+            return bidDoc -> CompletableFuture.completedFuture(bidDoc)
+                    .whenComplete((r, e) -> log.info("{} - 执行选择bid元素操作", Selector.name()))
+                    .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(doc -> doc.selectXpath(bidXpath).getFirst().attr("data-bid"), FlowEngine.IO_TASK_EXECUTOR);
 
-            return bidDoc -> {
-                log.info("{} - 执行选择bid元素操作", Selector.name());
-                return CompletableFuture.completedFuture(
-                        Jsoup.parse(bidDoc)
-                                .selectXpath(bidXpath)
-                                .getFirst()
-                                .attr("data-bid")
-                );
-            };
+
         }
 
         // 章节列表元素选择器
         public static Selector<String, String> chapterSelector() {
             final var chapterXpath = "/html/body/i[5]";
-            return chapterDoc -> {
-                log.info("{} - 执行选择章节列表元素操作", Selector.name());
-                return CompletableFuture.completedFuture(
-                        Jsoup.parse(chapterDoc)
-                                .selectXpath(chapterXpath)
-                                .text());
-            };
+            return chapterDoc -> CompletableFuture.completedFuture(chapterDoc)
+                    .whenComplete((r, e) -> log.info("{} - 执行选择章节列表元素操作", Selector.name()))
+                    .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(doc -> doc.selectXpath(chapterXpath).text());
         }
 
         // 章节内容元素选择器
         public static Selector<Chapter.Chapter4Select, Chapter.Chapter4Parse> contentSelector() {
-            // 章节内容直接为 json 字符串，无需额外选择器，走个流程
-            return chapter4Select -> {
-                log.info("{} - 执行选择章节内容元素操作", Selector.name());
-                var chapter4Parse = new Chapter.Chapter4Parse(chapter4Select.bookName(), chapter4Select.chapterName(), chapter4Select.chapterOrdid(), chapter4Select.jsonCiphertext());
-                return CompletableFuture.completedFuture(chapter4Parse);
-            };
+            // map 2 Chapter4Parse
+            return chapter4Select -> CompletableFuture.completedFuture(chapter4Select)
+                    .whenComplete((r, e) -> log.info("{} - 执行选择章节内容元素操作", Selector.name()))
+                    .thenApplyAsync(c4s -> new Chapter.Chapter4Parse(c4s.bookName(), c4s.chapterName(), c4s.chapterOrdid(), c4s.jsonCiphertext()));
         }
     }
 }

@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
+    // 默认文件夹路径 e.g. D:/斗破苍穹
+    public static final String FOLDER_FORMATTER = "D:/%s";
     // 删除文件标识
     public static final boolean NEED_DELETE = true;
     // 休眠时间

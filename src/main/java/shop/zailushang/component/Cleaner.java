@@ -16,11 +16,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
 
     @Override
-    default CompletableFuture<Void> execute(Chapter.Chapter4Clean chapter) throws Exception {
-        return clean(chapter);
+    default CompletableFuture<Void> execute(Chapter.Chapter4Clean cleanList) throws Exception {
+        return clean(cleanList);
     }
 
-    CompletableFuture<Void> clean(Chapter.Chapter4Clean chapter) throws Exception;
+    CompletableFuture<Void> clean(Chapter.Chapter4Clean cleanList) throws Exception;
 
     // 删除文件
     static Path clean(Path path) {
@@ -45,18 +45,19 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
         }
 
         public static Cleaner fileCleaner() {
-            return chapter -> {
-                log.info("{} - 执行文件删除操作", Cleaner.name());
-                if (FlowEngine.NEED_DELETE) {
-                    chapter.paths()
-                            .stream()
-                            .map(CompletableFuture::completedFuture)
-                            .forEach(future -> future.thenApplyAsync(Cleaner::clean, FlowEngine.IO_TASK_EXECUTOR)
-                                    .whenComplete((path, throwable) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path))
-                                    .join());
-                }
-                return CompletableFuture.completedFuture(null);
-            };
+            return cleanList -> CompletableFuture.completedFuture(cleanList)
+                    .whenComplete((r, e) -> log.info("{} - 执行文件删除操作", Cleaner.name()))
+                    .thenApplyAsync(cl -> {
+                        if (FlowEngine.NEED_DELETE) {
+                            cl.paths()
+                                    .stream()
+                                    .map(CompletableFuture::completedFuture)
+                                    .forEach(future -> future.thenApplyAsync(Cleaner::clean, FlowEngine.IO_TASK_EXECUTOR)
+                                            .whenComplete((path, throwable) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path))
+                                            .join());
+                        }
+                        return null;
+                    }, FlowEngine.IO_TASK_EXECUTOR);
         }
     }
 }

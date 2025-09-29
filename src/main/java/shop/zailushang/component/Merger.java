@@ -15,11 +15,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapter4Clean> {
 
     @Override
-    default CompletableFuture<Chapter.Chapter4Clean> execute(List<Chapter.Chapter4Merge> sources) throws Exception {
-        return merge(sources);
+    default CompletableFuture<Chapter.Chapter4Clean> execute(List<Chapter.Chapter4Merge> fileSources) throws Exception {
+        return merge(fileSources);
     }
 
-    CompletableFuture<Chapter.Chapter4Clean> merge(List<Chapter.Chapter4Merge> sources) throws Exception;
+    CompletableFuture<Chapter.Chapter4Clean> merge(List<Chapter.Chapter4Merge> fileSources) throws Exception;
 
     // 组件名
     static String name() {
@@ -34,27 +34,19 @@ public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapte
         }
 
         public static Merger fileMerger() {
-            return sources -> {
-                log.info("{} - 执行文件合并操作 待合并文件数量 => {}", Merger.name(), sources.size());
-
-
-                // 章节序号集合
-                var orderIds = sources.stream()
-                        .map(Chapter.Chapter4Merge::orderId)
-                        .toList();
-
-                // 组装 IOForkJoinTask 所需任务数据
-                var partBook = new PartBook(sources, orderIds.getFirst(), orderIds.getLast(), FlowEngine.IO_TASK_EXECUTOR);
-
-                var bookName = sources.getFirst().bookName();
-                var paths = sources.stream().map(Chapter.Chapter4Merge::filePath).toList();
-
-                // 提交异步任务
-                return CompletableFuture.completedFuture(partBook)
-                        .thenApplyAsync(PartBook::compute, FlowEngine.IO_TASK_EXECUTOR)
-                        .whenComplete((result, throwable) -> log.info("{} - 执行文件合并操作 成功合并文件数量 => {}", Merger.name(), result.successful()))
-                        .thenApplyAsync(unused -> new Chapter.Chapter4Clean(bookName, paths), FlowEngine.IO_TASK_EXECUTOR);// 继续向后传递文件列表
-            };
+            return fileSources -> CompletableFuture.completedFuture(fileSources)
+                    .whenComplete((r, e) -> log.info("{} - 执行文件合并操作 待合并文件数量 => {}", Merger.name(), fileSources.size()))
+                    .thenApplyAsync(fss -> {
+                        // 章节序号集合
+                        var orderIds = fss.stream()
+                                .map(Chapter.Chapter4Merge::orderId)
+                                .toList();
+                        // 组装 IOForkJoinTask 所需任务数据
+                        return new PartBook(fss, orderIds.getFirst(), orderIds.getLast(), FlowEngine.IO_TASK_EXECUTOR);
+                    }, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(PartBook::compute, FlowEngine.IO_TASK_EXECUTOR)// 提交异步任务
+                    .whenComplete((result, throwable) -> log.info("{} - 执行文件合并操作 成功合并文件数量 => {}", Merger.name(), result.successful()))
+                    .thenApplyAsync(unused -> new Chapter.Chapter4Clean(fileSources.getFirst().bookName(), fileSources.stream().map(Chapter.Chapter4Merge::filePath).toList()), FlowEngine.IO_TASK_EXECUTOR);// 继续向后传递文件列表
         }
     }
 }

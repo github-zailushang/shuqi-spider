@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.flow.FlowEngine;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -32,21 +33,16 @@ public interface Formatter extends Task<Chapter.Chapter4Format, Chapter.Chapter4
         }
 
         public static Formatter contentFormatter() {
-            return chapter -> {
-                log.info("{} - 执行章节内容格式化操作", Formatter.name());
-                var chapterContext = chapter.unformattedChapterContent()
-                        // 替换换行符
-                        .replaceAll("<br/>", "\n")
-                        .lines()
-                        // 去除首尾空白
-                        .map(String::strip)
-                        // 去除空白符后需要另行添加行尾添加换行
-                        .collect(Collectors.joining("\n"))
-                        // 拼接章节标题、行尾添加两个换行，方便后续文件合并时操作
-                        .transform(str -> String.format("%s\n%s\n\n", chapter.chapterName(), str));
-                var chapter4Write = new Chapter.Chapter4Write(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext);
-                return CompletableFuture.completedFuture(chapter4Write);
-            };
+            return chapter -> CompletableFuture.completedFuture(chapter)
+                    .whenComplete((r, e) -> log.info("{} - 执行章节内容格式化操作", Formatter.name()))
+                    .thenApplyAsync(Chapter.Chapter4Format::unformattedChapterContent, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(unformattedChapterContent -> unformattedChapterContent.replaceAll("<br/>", "\n"), FlowEngine.IO_TASK_EXECUTOR)// 替换换行符
+                    .thenApplyAsync(String::lines, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(stringStream -> stringStream.map(String::strip), FlowEngine.IO_TASK_EXECUTOR)// 去除行首行尾空格
+                    .thenApplyAsync(stringStream -> stringStream.collect(Collectors.joining("\n")), FlowEngine.IO_TASK_EXECUTOR)// 重新拼接换行
+                    .thenApplyAsync(chapterContext -> String.format("%s\n%s\n\n", chapter.chapterName(), chapterContext), FlowEngine.IO_TASK_EXECUTOR)// 拼接章节名，行尾添加两个换行符，方便后续文件合并
+                    .thenApplyAsync(chapterContext -> new Chapter.Chapter4Write(chapter.bookName(), chapter.chapterName(), chapter.chapterOrdid(), chapterContext), FlowEngine.IO_TASK_EXECUTOR);
+
         }
     }
 }

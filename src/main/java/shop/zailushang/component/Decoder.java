@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.utils.Assert;
 import shop.zailushang.utils.ScriptEnginePool;
 
@@ -88,15 +89,12 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
         }
 
         public static Decoder contentDecoder() {
-            return chapter4Decode -> {
-                log.info("{} - 执行解密操作", Decoder.name());
-                var ciphertext = chapter4Decode.ciphertext();
-                Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。"));
-                // 改用 java 本地实现的解密方法
-                var unformattedChapterContent = withNativeDecode(ciphertext);
-                var chapter4Format = new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent);
-                return CompletableFuture.completedFuture(chapter4Format);
-            };
+            return chapter4Decode -> CompletableFuture.completedFuture(chapter4Decode)
+                    .whenComplete((r, e) -> log.info("{} - 执行解密操作", Decoder.name()))
+                    .thenApplyAsync(Chapter.Chapter4Decode::ciphertext, FlowEngine.IO_TASK_EXECUTOR)// 改用 java 本地实现的解密方法
+                    .whenComplete((ciphertext, e) -> Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。")))
+                    .thenApplyAsync(Decoder::withNativeDecode, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(unformattedChapterContent -> new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent), FlowEngine.IO_TASK_EXECUTOR);
         }
     }
 }
