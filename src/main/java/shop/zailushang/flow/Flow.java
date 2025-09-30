@@ -27,7 +27,7 @@ public interface Flow<T, R> {
      * 将传入的类型包装成 CompletableFuture
      */
     static <T> Flow<T, T> identity() {
-        return () -> CompletableFuture::completedFuture;
+        return Task::<T>identity;
     }
 
     /**
