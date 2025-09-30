@@ -61,6 +61,10 @@ public interface Flow<T, R> {
      * 但实际操作时，发现参数和返回值的不统一，不太可行，因为迭代需要提供统一的调用方式，强行统一的话，只能用更宽泛的类型来接受
      * 并且在使用时使用 instanceof 判断强转，我所不欲也，要将上一个处理器的返回作为下一个处理器的输入，明显更符合流式编程、管道模式
      * 用泛型来描述前后两者的关系还是比较容易的，故而选用了一种 a.then(b).then(c) 的模式来设计代码
+     * 工厂类： 使用静态工厂 && 策略 && 伪单例（但需为纯函数），下同
+     * {@link Flow.Flows}       {@link Reader.Readers}      {@link Selector.Selectors}
+     * {@link Parser.Parsers}   {@link Decoder.Decoders}    {@link Formatter.Formatters}
+     * {@link Writer.Writers}   {@link Merger.Mergers}      {@link Cleaner.Cleaners}
      */
     class Flows {
         // 完整 下载bid 的流程组装
@@ -84,7 +88,7 @@ public interface Flow<T, R> {
                     downloads -> {
                         var contentFlowStarts = Flow.<Chapter.Chapter4Read>startParallel(downloads.size());
                         final var parallelFlows = contentFlowStarts.stream()
-                                //.limit(20) // 仅下载前 20章： 用于测试时，控制下载章节数量
+                                .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 用于控制下载章节数量，测试模式下仅下载前 20章
                                 .map(flow -> flow.thenAsync(contentFlow))
                                 .toList();
 

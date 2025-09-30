@@ -70,14 +70,15 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         // 将章节内容打印在控制台，调试时用
         @SuppressWarnings("unused")
         public static Writer consoleWriter() {
-            return chapter -> {
-                log.info("{} - 执行文件写入操作[控制台]", Writer.name());
-                var part = "-".repeat(15);
-                var separator = String.format("%s\t%s\t%s", part, chapter.chapterName(), part);
-                System.out.println(separator);
-                System.out.println(chapter.chapterContext());
-                return CompletableFuture.completedFuture((Chapter.Chapter4Merge) null);
-            };
+            final var part = "-".repeat(15);
+            return chapter -> CompletableFuture.completedFuture(chapter)
+                    .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()))
+                    .thenApplyAsync(cpt -> {
+                        var separator = String.format("%s\t%s\t%s", part, cpt.chapterName(), part);
+                        System.out.println(separator);
+                        System.out.println(cpt.chapterContext());
+                        return null;
+                    });
         }
 
         // 将章节内容写入文件

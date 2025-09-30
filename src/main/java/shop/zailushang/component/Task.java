@@ -53,7 +53,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     static <T, R> Task<T, ? extends R> withRateLimit(Task<? super T, R> innerTask, long timeout) {
         Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do.” — Steve Jobs"));
         return param -> {
-            // 别改！别改！别改！后果自负！！！
+            // 获取信号量
             FlowEngine.SEMAPHORE.acquire();
             // 直接休眠指定秒数，这里就不额外计算了，徒添复杂度
             TimeUnit.SECONDS.sleep(timeout);

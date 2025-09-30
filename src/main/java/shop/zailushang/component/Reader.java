@@ -37,12 +37,6 @@ public interface Reader<T, R> extends Task<T, R> {
         return "「载」";
     }
 
-    /**
-     * 工厂类： 使用静态工厂 && 策略 && 伪单例（但需为纯函数），下同
-     * {@link Reader.Readers}   {@link Selector.Selectors}  {@link Parser.Parsers}
-     * {@link Decoder.Decoders} {@link Formatter.Formatters} {@link Writer.Writers}
-     * {@link Merger.Mergers} {@link Cleaner.Cleaners} {@link shop.zailushang.flow.Flow.Flows}
-     */
     @Slf4j
     class Readers {
 

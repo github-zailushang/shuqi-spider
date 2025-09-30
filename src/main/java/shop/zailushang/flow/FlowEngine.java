@@ -8,11 +8,13 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
+    // 是否启用测试模式
+    public static final boolean IS_TEST = true;
     // 默认文件夹路径 e.g. D:/斗破苍穹
     public static final String FOLDER_FORMATTER = "D:/%s";
     // 删除文件标识
     public static final boolean NEED_DELETE = true;
-    // 休眠时间
+    // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
     public static final long TIMEOUT = 2L;
     // io密集型任务线程池 ：使用虚拟线程池
     public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();

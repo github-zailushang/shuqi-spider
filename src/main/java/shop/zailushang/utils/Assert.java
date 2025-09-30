@@ -61,7 +61,7 @@ public class Assert {
      * @param <U>        校验参数类型2
      * @param <E>        异常类型
      *                   满足性校验：使用 verifier 传入待校验参数 left,right,要求参数必须满足校验条件
-     *                   (必须返回 false,当返回 true 时则抛出 exSupplier 制造的异常)
+     *                   (要求校验结果必须返回 true,当返回 false 时则抛出 exSupplier 制造的异常)
      */
     public static <T, U, E extends RuntimeException> void isTrue(T left, U right, BiPredicate<T, U> verifier, Supplier<E> exSupplier) {
         Objects.requireNonNull(verifier, "verifier is null");
@@ -80,8 +80,8 @@ public class Assert {
      * @param <T>        校验参数类型1
      * @param <U>        校验参数类型2
      * @param <E>        异常类型
-     *                   不满足性校验：使用 verifier 传入待校验参数 left,right,要求参数必须满足校验条件
-     *                   (必须返回 false,当返回 true 时则抛出 exSupplier 制造的异常)
+     *                   不满足性校验：使用 verifier 传入待校验参数 left,right,要求参数必须不满足校验条件
+     *                   (要求校验结果必须返回 false,当返回 true 时则抛出 exSupplier 制造的异常)
      */
     public static <T, U, E extends RuntimeException> void isFalse(T left, U right, BiPredicate<T, U> verifier, Supplier<E> exSupplier) {
         Objects.requireNonNull(verifier, "verifier is null");
