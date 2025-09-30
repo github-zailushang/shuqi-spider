@@ -78,15 +78,13 @@ public interface Flow<T, R> {
             final var atoLong = new AtomicLong(0);
             return () ->
                     downloads -> CompletableFuture.completedFuture(downloads)
-                            .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
-                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), FlowEngine.IO_TASK_EXECUTOR)
+                            .thenApplyAsync(List::parallelStream, FlowEngine.IO_TASK_EXECUTOR)// 开启并行流加速提交
+                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), FlowEngine.IO_TASK_EXECUTOR)// 并行流不影响排序语义
                             .thenApplyAsync(flowStream -> flowStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), FlowEngine.IO_TASK_EXECUTOR)// 测试模式下仅下载前 20 章
-                            .thenApplyAsync(Stream::parallel, FlowEngine.IO_TASK_EXECUTOR)// 开启并行流加速提交
                             .thenApplyAsync(flowStream -> flowStream.map(download -> Flow.<Chapter.Chapter4Read>identity().thenAsync(contentFlow).start(download)), FlowEngine.IO_TASK_EXECUTOR)
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR)// 提前收集源
-                            // 另行排序设置 skip
                             .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
-                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 排序
+                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 重新排序
                             .thenApplyAsync(flowStream -> flowStream.map(merge -> merge.identity(merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR);
         }
