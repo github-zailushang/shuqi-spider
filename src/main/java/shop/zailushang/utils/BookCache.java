@@ -27,7 +27,7 @@ public class BookCache {
     }
 
     // 获取文件路径
-    public static Path getFilePath(String bookName, String chapterOrdid) {
+    public static Path getFilePath(String bookName, Integer chapterOrdid) {
         try {
             return Paths.get(String.format(FILE_PATH_FORMATTER, getFolderPath(bookName), chapterOrdid));
         } catch (Exception e) {

@@ -9,28 +9,28 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Chapter {
     // 下载时
     public record Chapter4Read(String bookName, String chapterId, String chapterName, String contUrlSuffix,
-                               String chapterOrdid) {
+                               Integer chapterOrdid) {
     }
 
     // 选择时
-    public record Chapter4Select(String bookName, String chapterName, String chapterOrdid, String jsonCiphertext) {
+    public record Chapter4Select(String bookName, String chapterName, Integer chapterOrdid, String jsonCiphertext) {
     }
 
     // 解析时
-    public record Chapter4Parse(String bookName, String chapterName, String chapterOrdid, String jsonCiphertext) {
+    public record Chapter4Parse(String bookName, String chapterName, Integer chapterOrdid, String jsonCiphertext) {
     }
 
     // 解密时
-    public record Chapter4Decode(String bookName, String chapterName, String chapterOrdid, String ciphertext) {
+    public record Chapter4Decode(String bookName, String chapterName, Integer chapterOrdid, String ciphertext) {
     }
 
     // 排版时
-    public record Chapter4Format(String bookName, String chapterName, String chapterOrdid,
+    public record Chapter4Format(String bookName, String chapterName, Integer chapterOrdid,
                                  String unformattedChapterContent) {
     }
 
     // 保存时
-    public record Chapter4Write(String bookName, String chapterName, String chapterOrdid, String chapterContext) {
+    public record Chapter4Write(String bookName, String chapterName, Integer chapterOrdid, String chapterContext) {
     }
 
     // 文件合并时

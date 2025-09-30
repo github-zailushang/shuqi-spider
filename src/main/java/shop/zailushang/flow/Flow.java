@@ -8,7 +8,7 @@ import shop.zailushang.entity.Chapter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * 抽象流程：组装多个 Task，形成一条任务链
@@ -28,15 +28,6 @@ public interface Flow<T, R> {
      */
     static <T> Flow<T, T> identity() {
         return () -> CompletableFuture::completedFuture;
-    }
-
-    /**
-     * 根据章节列表flow 返回的条目，来生成对应数量的，下载章节流程（因后续的下载章节流程对应的是一条章节，需要将章节列表处理成 N 条下载章节流程）
-     */
-    static <T> List<Flow<T, T>> startParallel(Integer size) {
-        return IntStream.range(0, size)
-                .mapToObj(unused -> Flow.<T>identity())
-                .toList();
     }
 
     /**
@@ -84,28 +75,20 @@ public interface Flow<T, R> {
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
             final var contentFlow = Flow.Flows.contentFlow();
+            final var atoLong = new AtomicLong(0);
             return () ->
-                    downloads -> {
-                        var contentFlowStarts = Flow.<Chapter.Chapter4Read>startParallel(downloads.size());
-                        final var parallelFlows = contentFlowStarts.stream()
-                                .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 用于控制下载章节数量，测试模式下仅下载前 20章
-                                .map(flow -> flow.thenAsync(contentFlow))
-                                .toList();
-
-                        // 因后面的 skip 属性强依赖排序结果来计算，此处开启并行流，会导致 skip 计算异常，表现为在后续的文件写入时，文件指针会乱序
-                        // 故在此处需要提前收集源，再另行排序
-                        var sources = IntStream.range(0, parallelFlows.size())
-                                .parallel() // 开启并行流加速提交
-                                .mapToObj(index -> parallelFlows.get(index).start(downloads.get(index)))
-                                .toList();
-
-                        var atoLong = new AtomicLong(0);
-                        sources = sources.stream()
-                                .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 章节按照 1 ~ N连续自然数顺序 排序
-                                .map(merge -> merge.identity(merge, atoLong))// 设置 skip 属性
-                                .toList();
-                        return CompletableFuture.completedFuture(sources);
-                    };
+                    downloads -> CompletableFuture.completedFuture(downloads)
+                            .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
+                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), FlowEngine.IO_TASK_EXECUTOR)
+                            .thenApplyAsync(flowStream -> flowStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), FlowEngine.IO_TASK_EXECUTOR)// 测试模式下仅下载前 20 章
+                            .thenApplyAsync(Stream::parallel, FlowEngine.IO_TASK_EXECUTOR)// 开启并行流加速提交
+                            .thenApplyAsync(flowStream -> flowStream.map(download -> Flow.<Chapter.Chapter4Read>identity().thenAsync(contentFlow).start(download)), FlowEngine.IO_TASK_EXECUTOR)
+                            .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR)// 提前收集源
+                            // 另行排序设置 skip
+                            .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
+                            .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 排序
+                            .thenApplyAsync(flowStream -> flowStream.map(merge -> merge.identity(merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
+                            .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]
