@@ -1,6 +1,7 @@
 package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
+import shop.zailushang.utils.Assert;
 import shop.zailushang.utils.BookCache;
 
 import java.net.http.HttpClient;
@@ -30,20 +31,19 @@ public class FlowEngine implements AutoCloseable {
 
     // 单例模式：静态实例对象
     // 使用 volatile 修饰，防止指令重排导致的 NPE 问题
-    public static volatile FlowEngine defaultFlowEngine;
+    public static volatile FlowEngine DEFAULT_FLOW_ENGINE;
 
     private FlowEngine() {
-        if (defaultFlowEngine != null)
-            throw new IllegalStateException("Don’t judge each day by the harvest you reap but by the seeds that you plant. — Robert Louis Stevenson");
+        Assert.isTrue(DEFAULT_FLOW_ENGINE, Assert::isNull, () -> new IllegalStateException("Don’t judge each day by the harvest you reap but by the seeds that you plant. — Robert Louis Stevenson"));
     }
 
     // dcl 单例
     public static FlowEngine getDefaultFlowEngine() {
-        if (defaultFlowEngine == null)
+        if (DEFAULT_FLOW_ENGINE == null)
             synchronized (FlowEngine.class) {
-                if (defaultFlowEngine == null) defaultFlowEngine = new FlowEngine();
+                if (DEFAULT_FLOW_ENGINE == null) DEFAULT_FLOW_ENGINE = new FlowEngine();
             }
-        return defaultFlowEngine;
+        return DEFAULT_FLOW_ENGINE;
     }
 
     // 组装串联流程
