@@ -16,11 +16,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
 
     @Override
-    default CompletableFuture<Void> execute(Chapter.Chapter4Clean cleanList) throws Exception {
-        return clean(cleanList);
+    default CompletableFuture<Void> execute(Chapter.Chapter4Clean chapter4Clean) throws Exception {
+        return clean(chapter4Clean);
     }
 
-    CompletableFuture<Void> clean(Chapter.Chapter4Clean cleanList) throws Exception;
+    CompletableFuture<Void> clean(Chapter.Chapter4Clean chapter4Clean) throws Exception;
 
     // 删除文件
     static Path clean(Path path) {
@@ -45,17 +45,17 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
         }
 
         public static Cleaner fileCleaner() {
-            return cleanList -> CompletableFuture.completedFuture(cleanList)
+            return chapter4Clean -> CompletableFuture.completedFuture(chapter4Clean)
                     .whenComplete((r, e) -> log.info("{} - 执行文件删除操作", Cleaner.name()))
-                    .thenApplyAsync(cl -> {
-                        if (FlowEngine.NEED_DELETE) {
-                            cl.paths()
+                    .thenApplyAsync(c4c -> {
+                        if (FlowEngine.NEED_DELETE)
+                            c4c.paths()
                                     .stream()
                                     .map(CompletableFuture::completedFuture)
                                     .forEach(future -> future.thenApplyAsync(Cleaner::clean, FlowEngine.IO_TASK_EXECUTOR)
                                             .whenComplete((path, throwable) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path))
-                                            .join());
-                        }
+                                            .join()
+                                    );
                         return null;
                     }, FlowEngine.IO_TASK_EXECUTOR);
         }

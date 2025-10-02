@@ -34,13 +34,13 @@ public class Chapter {
     }
 
     // 文件合并时
-    public record Chapter4Merge(Integer orderId, Path filePath, FileChannel fileChannel, String bookName, Long skip) {
+    public record Chapter4Merge(String bookName, Integer orderId, Path filePath, FileChannel fileChannel, Long skip) {
         public Chapter4Merge(Chapter4Merge chapter4Merge, Long skip) {
-            this(chapter4Merge.orderId, chapter4Merge.filePath, chapter4Merge.fileChannel, chapter4Merge.bookName, skip);
+            this(chapter4Merge.bookName, chapter4Merge.orderId, chapter4Merge.filePath, chapter4Merge.fileChannel, skip);
         }
 
-        public Chapter4Merge(Integer orderId, Path filePath, FileChannel fileChannel, String bookName) {
-            this(orderId, filePath, fileChannel, bookName, -1L);
+        public Chapter4Merge(String bookName, Integer orderId, Path filePath, FileChannel fileChannel) {
+            this(bookName, orderId, filePath, fileChannel, -1L);
         }
 
         public Chapter4Merge identity(Chapter4Merge chapter4Merge, AtomicLong atomicLong) {
