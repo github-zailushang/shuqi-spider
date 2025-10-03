@@ -11,7 +11,8 @@ import java.util.List;
  * 下载VIP章节需在 {@link Reader#read0 } 中添加对应 cookie 认证
  * 默认写入文件路径 {@link FlowEngine#FOLDER_FORMATTER } 可修改默认位置，修改前缀即可
  * 下载完成时默认清理零散章节 {@link FlowEngine#NEED_DELETE } 可控制关闭
- * 默认开启测试模式 {@link FlowEngine#IS_TEST } 可控制关闭，测试模式下仅下载前 20 章节内容
+ * 默认开启测试模式 {@link FlowEngine#IS_TEST } 可控制关闭，测试模式下仅下载前 20 章内容
+ * 每个线程负责处理的资源数量 {@link FlowEngine#DEFAULT_CAPACITY } 默认合并 100 章
  */
 public class ShuQiSpiderStarter {
     public static void main(String[] args) {

@@ -1,5 +1,6 @@
 package shop.zailushang.entity;
 
+import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.utils.BookCache;
 import shop.zailushang.utils.IOForkJoinTask;
 
@@ -20,13 +21,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, Integer capacity,
                        ExecutorService executor) implements IOForkJoinTask<PartBook> {
 
-    public String name() {
-        return "「镇坛木」";
+    // 初始构造
+    public PartBook(List<Chapter.Chapter4Merge> sources) {
+        this(sources, sources.getFirst().orderId(), sources.getLast().orderId(), FlowEngine.DEFAULT_CAPACITY, FlowEngine.IO_TASK_EXECUTOR);
     }
 
-    // 默认每个线程处理 100章内容
-    public PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, ExecutorService executor) {
-        this(sources, startIndex, endIndex, 100, executor);
+    public String name() {
+        return "「镇坛木」";
     }
 
     @Override

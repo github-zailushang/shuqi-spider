@@ -17,6 +17,8 @@ public class FlowEngine implements AutoCloseable {
     public static final boolean NEED_DELETE = true;
     // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
     public static final long TIMEOUT = 2L;
+    // 每个线程默认处理的章节数量
+    public static final Integer DEFAULT_CAPACITY = 100;
     // io密集型任务线程池 ：使用虚拟线程池
     public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
