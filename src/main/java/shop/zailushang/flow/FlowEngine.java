@@ -13,10 +13,12 @@ public class FlowEngine implements AutoCloseable {
     public static final boolean IS_DEBUG = false;
     // 是否启用测试模式
     public static final boolean IS_TEST = true;
-    // 默认文件夹路径 e.g. D:/斗破苍穹
-    public static final String FOLDER_FORMATTER = "D:/%s";
+    // 是否启用本地解密
+    public static final boolean USE_NATIVE = true;
     // 删除文件标识
     public static final boolean NEED_DELETE = true;
+    // 默认文件夹路径 e.g. D:/斗破苍穹
+    public static final String FOLDER_FORMATTER = "D:/%s";
     // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
     public static final long TIMEOUT = 2L;
     // 每个线程默认处理的章节数量

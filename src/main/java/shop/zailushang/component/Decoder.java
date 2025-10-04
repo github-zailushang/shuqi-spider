@@ -24,7 +24,6 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
     CompletableFuture<Chapter.Chapter4Format> decode(Chapter.Chapter4Decode content) throws Exception;
 
     // js 解密
-    @SuppressWarnings("unused")
     static String withJsDecode(String ciphertext) {
         // 调用 js引擎池 解密章节内容
         var scriptEngine = ScriptEnginePool.acquire();
@@ -93,7 +92,7 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
                     .whenComplete((r, e) -> log.info("{} - 执行解密操作", Decoder.name()))
                     .thenApplyAsync(Chapter.Chapter4Decode::ciphertext, FlowEngine.IO_TASK_EXECUTOR)
                     .whenComplete((ciphertext, e) -> Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。")))
-                    .thenApplyAsync(Decoder::withNativeDecode, FlowEngine.IO_TASK_EXECUTOR)// 改用 java 本地实现的解密方法
+                    .thenApplyAsync(FlowEngine.USE_NATIVE ? Decoder::withNativeDecode : Decoder::withJsDecode, FlowEngine.IO_TASK_EXECUTOR)// 根据配置选择解密方式
                     .thenApplyAsync(unformattedChapterContent -> new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent), FlowEngine.IO_TASK_EXECUTOR);
         }
     }

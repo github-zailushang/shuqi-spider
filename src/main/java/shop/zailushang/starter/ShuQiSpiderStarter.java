@@ -13,6 +13,7 @@ import java.util.List;
  * 是否启用清理行为 {@link FlowEngine#NEED_DELETE } 默认启用，合并完成时会清理零散章节
  * 是否启用测试模式 {@link FlowEngine#IS_TEST } 默认启用，测试模式下仅下载前 20 章内容
  * 是否启用调试模式 {@link FlowEngine#IS_DEBUG } 默认禁止，调试模式下，会将抓取的章节内容输出至控制台，不会写入文件
+ * 是否启用本地解密模式 {@link FlowEngine#USE_NATIVE } 默认启用，使用java本地解密方法免加载js脚本，免排队更快
  * 每个线程负责处理的资源数量 {@link FlowEngine#DEFAULT_CAPACITY } 默认合并 100 章
  */
 public class ShuQiSpiderStarter {
