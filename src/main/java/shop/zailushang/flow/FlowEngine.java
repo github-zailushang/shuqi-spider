@@ -9,6 +9,8 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
+    // 是否启用调试模式
+    public static final boolean IS_DEBUG = false;
     // 是否启用测试模式
     public static final boolean IS_TEST = true;
     // 默认文件夹路径 e.g. D:/斗破苍穹

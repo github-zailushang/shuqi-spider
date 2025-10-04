@@ -25,7 +25,7 @@ public interface Reader<T, R> extends Task<T, R> {
     static CompletableFuture<String> read0(String uri) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
-//                .header("cookie", "") // 此处添加 VIP账号权限
+                //.header("cookie", "") // 此处添加 VIP账号权限
                 .build();
 
         return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())

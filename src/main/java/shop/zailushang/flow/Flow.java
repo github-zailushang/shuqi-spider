@@ -24,10 +24,17 @@ public interface Flow<T, R> {
     }
 
     /**
-     * 将传入的类型包装成 CompletableFuture
+     * 一致性流程
      */
     static <T> Flow<T, T> identity() {
         return Task::<T>identity;
+    }
+
+    /**
+     * 空流程
+     */
+    static <T, R> Flow<T, R> empty() {
+        return Task::<T, R>empty;
     }
 
     /**
@@ -98,13 +105,13 @@ public interface Flow<T, R> {
                     .thenAsync(Parser.Parsers.contentParser())
                     .thenAsync(Decoder.Decoders.contentDecoder())
                     .thenAsync(Formatter.Formatters.contentFormatter())
-                    .thenAsync(Writer.Writers.fileWriter());
+                    .thenAsync(FlowEngine.IS_DEBUG ? Writer.Writers.consoleWriter() : Writer.Writers.fileWriter());
         }
 
         // 完整 合并文件 的流程组装
         public static Flow<List<Chapter.Chapter4Merge>, Void> mergeFlow() {
-            return () -> Merger.Mergers.fileMerger()
-                    .thenAsync(Cleaner.Cleaners.fileCleaner());
+            return FlowEngine.IS_DEBUG ? Flow.empty() :
+                    () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
         }
     }
 }

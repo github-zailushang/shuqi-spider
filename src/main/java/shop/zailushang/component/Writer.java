@@ -68,7 +68,6 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         }
 
         // 将章节内容打印在控制台，调试时用
-        @SuppressWarnings("unused")
         public static Writer consoleWriter() {
             final var part = "-".repeat(15);
             return chapter -> CompletableFuture.completedFuture(chapter)
@@ -77,7 +76,7 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
                         var separator = String.format("%s\t%s\t%s", part, cpt.chapterName(), part);
                         System.out.println(separator);
                         System.out.println(cpt.chapterContext());
-                        return null;
+                        return Chapter.Chapter4Merge.EMPTY;
                     });
         }
 
