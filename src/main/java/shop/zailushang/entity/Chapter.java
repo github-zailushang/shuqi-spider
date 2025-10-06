@@ -46,7 +46,7 @@ public class Chapter {
             this(bookName, orderId, filePath, fileChannel, -1L);
         }
 
-        public Chapter4Merge identity(Chapter4Merge chapter4Merge, AtomicLong atomicLong) {
+        public static Chapter4Merge withSkip(Chapter4Merge chapter4Merge, AtomicLong atomicLong) {
             // 空对象直接返回，不想改流程，只能特殊处理空对象
             if (chapter4Merge == EMPTY) return chapter4Merge;
             try {

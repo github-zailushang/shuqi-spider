@@ -47,9 +47,8 @@ public interface Parser<T, R> extends Task<T, R> {
             final var recognizedProperties = List.of("chapterId", "contUrlSuffix", "chapterOrdid", "chapterName");
             return chapterSource -> CompletableFuture.completedFuture(chapterSource)
                     .whenComplete((r, e) -> log.info("{} - 执行解析章节列表操作", Parser.name()))
-                    .thenApplyAsync(cs -> {
-                        // 根节点
-                        var rootJsonNode = JsonUtils.readTree(cs);
+                    .thenApplyAsync(JsonUtils::readTree, FlowEngine.IO_TASK_EXECUTOR)// 返回根节点
+                    .thenApplyAsync(rootJsonNode -> {
                         // 章节列表
                         var chapterList = rootJsonNode.get("chapterList");
                         // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}

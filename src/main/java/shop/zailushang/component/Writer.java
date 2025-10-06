@@ -83,9 +83,9 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         // 将章节内容写入文件
         public static Writer fileWriter() {
             return chapter -> CompletableFuture.completedFuture(chapter)
-                    .whenComplete((chapter4Merge, throwable) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()))
+                    .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()))
                     .thenComposeAsync(Writer::write0, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((chapter4Merge, throwable) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()));
+                    .whenComplete((chapter4Merge, e) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()));
         }
     }
 }

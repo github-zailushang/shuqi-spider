@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
+import org.jsoup.select.Elements;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
 
@@ -38,7 +39,9 @@ public interface Selector<T, R> extends Task<T, R> {
             return bidDoc -> CompletableFuture.completedFuture(bidDoc)
                     .whenComplete((r, e) -> log.info("{} - 执行选择bid元素操作", Selector.name()))
                     .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(doc -> doc.selectXpath(bidXpath).getFirst().attr("data-bid"), FlowEngine.IO_TASK_EXECUTOR);
+                    .thenApplyAsync(doc -> doc.selectXpath(bidXpath), FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(Elements::getFirst, FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(node -> node.attr("data-bid"), FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 章节列表元素选择器
@@ -47,7 +50,8 @@ public interface Selector<T, R> extends Task<T, R> {
             return chapterDoc -> CompletableFuture.completedFuture(chapterDoc)
                     .whenComplete((r, e) -> log.info("{} - 执行选择章节列表元素操作", Selector.name()))
                     .thenApplyAsync(Jsoup::parse, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(doc -> doc.selectXpath(chapterXpath).text(), FlowEngine.IO_TASK_EXECUTOR);
+                    .thenApplyAsync(doc -> doc.selectXpath(chapterXpath), FlowEngine.IO_TASK_EXECUTOR)
+                    .thenApplyAsync(Elements::text, FlowEngine.IO_TASK_EXECUTOR);
         }
 
         // 章节内容元素选择器

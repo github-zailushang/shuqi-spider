@@ -26,6 +26,7 @@ public interface Flow<T, R> {
     /**
      * 一致性流程
      */
+    @SuppressWarnings("unused")
     static <T> Flow<T, T> identity() {
         return Task::<T>identity;
     }
@@ -81,20 +82,18 @@ public interface Flow<T, R> {
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
-            // 组合针对一章的下载任务
-            final var contentFlow4one = Flow.<Chapter.Chapter4Read>identity()
-                    .thenAsync(Flows.contentFlow());
+            final var contentFlow = Flows.contentFlow();
             final var atoLong = new AtomicLong(0);
             return () ->
                     pendingDownloads -> CompletableFuture.completedFuture(pendingDownloads)
                             .thenApplyAsync(List::parallelStream, FlowEngine.IO_TASK_EXECUTOR)// 开启并行流加速提交
                             .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), FlowEngine.IO_TASK_EXECUTOR)// 并行流不影响排序语义
                             .thenApplyAsync(flowStream -> flowStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), FlowEngine.IO_TASK_EXECUTOR)// 测试模式下仅下载前 20 章
-                            .thenApplyAsync(flowStream -> flowStream.map(contentFlow4one::start), FlowEngine.IO_TASK_EXECUTOR)// 并发式启动下载任务
+                            .thenApplyAsync(flowStream -> flowStream.map(contentFlow::start), FlowEngine.IO_TASK_EXECUTOR)// 并发式启动下载任务
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR)// 提前收集源
                             .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
                             .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 重新排序
-                            .thenApplyAsync(flowStream -> flowStream.map(merge -> merge.identity(merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
+                            .thenApplyAsync(flowStream -> flowStream.map(merge -> Chapter.Chapter4Merge.withSkip(merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR);
         }
 

@@ -49,8 +49,7 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
                     .whenComplete((r, e) -> log.info("{} - 执行文件删除操作", Cleaner.name()))
                     .thenApplyAsync(c4c -> {
                         if (FlowEngine.NEED_DELETE)
-                            c4c.paths()
-                                    .stream()
+                            c4c.paths().stream()
                                     .map(CompletableFuture::completedFuture)
                                     .forEach(future -> future.thenApplyAsync(Cleaner::clean, FlowEngine.IO_TASK_EXECUTOR)
                                             .whenComplete((path, throwable) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path))

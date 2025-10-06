@@ -50,7 +50,7 @@ public interface Reader<T, R> extends Task<T, R> {
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
             return bookName -> CompletableFuture.completedFuture(bookName)
                     .thenApplyAsync(bidUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((bidUri, throwable) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri))
+                    .whenComplete((bidUri, e) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri))
                     .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
         }
 
@@ -60,7 +60,7 @@ public interface Reader<T, R> extends Task<T, R> {
             final var chapterUriFormatter = "https://www.shuqi.com/reader?bid=%s";
             return bid -> CompletableFuture.completedFuture(bid)
                     .thenApplyAsync(chapterUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((chapterUri, throwable) -> log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri))
+                    .whenComplete((chapterUri, e) -> log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri))
                     .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
         }
 
@@ -71,7 +71,7 @@ public interface Reader<T, R> extends Task<T, R> {
             return chapter4Read -> CompletableFuture.completedFuture(chapter4Read)
                     .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(contentUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((contentUri, throwable) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri))
+                    .whenComplete((contentUri, e) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri))
                     .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), FlowEngine.IO_TASK_EXECUTOR);
         }
