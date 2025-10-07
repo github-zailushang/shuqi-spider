@@ -3,6 +3,7 @@ package shop.zailushang.component;
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
+import shop.zailushang.utils.RateLimitUnits;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -72,7 +73,7 @@ public interface Reader<T, R> extends Task<T, R> {
                     .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(contentUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
                     .whenComplete((contentUri, e) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri))
-                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, FlowEngine.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
+                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), FlowEngine.IO_TASK_EXECUTOR);
         }
     }

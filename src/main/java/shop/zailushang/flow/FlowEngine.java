@@ -20,8 +20,6 @@ public class FlowEngine implements AutoCloseable {
     public static final boolean NEED_DELETE = true;
     // 默认文件夹路径 e.g. D:/斗破苍穹
     public static final String FOLDER_FORMATTER = "D:/%s";
-    // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
-    public static final long TIMEOUT = 2L;
     // 每个线程默认处理的章节数量
     public static final Integer DEFAULT_CAPACITY = 5;
     // io密集型任务线程池 ：使用虚拟线程池
