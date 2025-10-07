@@ -22,7 +22,7 @@ public class FlowEngine implements AutoCloseable {
     // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
     public static final long TIMEOUT = 2L;
     // 每个线程默认处理的章节数量
-    public static final Integer DEFAULT_CAPACITY = 100;
+    public static final Integer DEFAULT_CAPACITY = 5;
     // io密集型任务线程池 ：使用虚拟线程池
     public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -31,13 +31,9 @@ public class FlowEngine implements AutoCloseable {
             .executor(FlowEngine.IO_TASK_EXECUTOR)
             .build();
 
-    // 在下载章节内容时，最大允许并发数
-    public static final Integer MAX_ALLOWED = 3;
-    public static final Semaphore SEMAPHORE = new Semaphore(MAX_ALLOWED);
-
     // 单例模式：静态实例对象
     // 使用 volatile 修饰，防止指令重排导致的 NPE 问题
-    public static volatile FlowEngine DEFAULT_FLOW_ENGINE;
+    private static volatile FlowEngine DEFAULT_FLOW_ENGINE;
 
     private FlowEngine() {
         Assert.isTrue(DEFAULT_FLOW_ENGINE, Assert::isNull, () -> new IllegalStateException("Don’t judge each day by the harvest you reap but by the seeds that you plant. — Robert Louis Stevenson"));

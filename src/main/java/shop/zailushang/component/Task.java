@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.utils.Assert;
+import shop.zailushang.utils.RateLimitUnits;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -61,13 +62,9 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
      */
     static <T, R> Task<T, ? extends R> withRateLimit(Task<? super T, R> innerTask, long timeout) {
         Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do. — Steve Jobs"));
-        return t -> {
-            // 执行任务前获取信号量
-            FlowEngine.SEMAPHORE.acquire();
-            // 直接休眠指定秒数，这里就不额外计算了，徒添复杂度
-            TimeUnit.SECONDS.sleep(timeout);
-            // 任务结束时释放信号量
-            return innerTask.execute(t).whenComplete((r, e) -> FlowEngine.SEMAPHORE.release());
-        };
+        return t -> CompletableFuture.completedFuture(t)
+                .thenApplyAsync(RateLimitUnits::<T>acquire, FlowEngine.IO_TASK_EXECUTOR) // 执行任务前获取信号量
+                .thenComposeAsync(innerTask::<R>apply, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, FlowEngine.IO_TASK_EXECUTOR))// 使用包装带延时的线程池
+                .whenComplete(RateLimitUnits::release); // 任务结束时释放信号量
     }
 }
