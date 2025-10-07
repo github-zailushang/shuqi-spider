@@ -64,7 +64,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do. — Steve Jobs"));
         return t -> CompletableFuture.completedFuture(t)
                 .thenApplyAsync(RateLimitUnits::<T>acquire, FlowEngine.IO_TASK_EXECUTOR) // 执行任务前获取信号量
-                .thenComposeAsync(innerTask::<R>apply, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, FlowEngine.IO_TASK_EXECUTOR))// 使用包装带延时的线程池
+                .thenComposeAsync(innerTask, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, FlowEngine.IO_TASK_EXECUTOR))// 使用包装后带延时的线程池
                 .whenComplete(RateLimitUnits::release); // 任务结束时释放信号量
     }
 }
