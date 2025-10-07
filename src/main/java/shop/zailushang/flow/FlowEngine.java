@@ -5,6 +5,7 @@ import shop.zailushang.utils.Assert;
 import shop.zailushang.utils.BookCache;
 
 import java.net.http.HttpClient;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 @Slf4j
@@ -39,13 +40,14 @@ public class FlowEngine implements AutoCloseable {
         Assert.isTrue(DEFAULT_FLOW_ENGINE, Assert::isNull, () -> new IllegalStateException("Don’t judge each day by the harvest you reap but by the seeds that you plant. — Robert Louis Stevenson"));
     }
 
-    // dcl 单例
+    // 花式 dcl 单例
     public static FlowEngine getDefaultFlowEngine() {
-        if (DEFAULT_FLOW_ENGINE == null)
+        return Optional.ofNullable(DEFAULT_FLOW_ENGINE).orElseGet(() -> {
             synchronized (FlowEngine.class) {
-                if (DEFAULT_FLOW_ENGINE == null) DEFAULT_FLOW_ENGINE = new FlowEngine();
+                DEFAULT_FLOW_ENGINE = Optional.ofNullable(DEFAULT_FLOW_ENGINE).orElseGet(FlowEngine::new);
+                return DEFAULT_FLOW_ENGINE;
             }
-        return DEFAULT_FLOW_ENGINE;
+        });
     }
 
     // 组装串联流程
