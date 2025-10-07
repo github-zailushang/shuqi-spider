@@ -3,12 +3,12 @@ package shop.zailushang.component;
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.Content;
+import shop.zailushang.entity.RelayNode;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.utils.JsonUtils;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.IntStream;
 
 /**
  * 组件：从选择的元素中进一步解析想要的内容
@@ -43,34 +43,11 @@ public interface Parser<T, R> extends Task<T, R> {
 
         // 章节列表解析器
         public static Parser<String, List<Chapter.Chapter4Read>> chapterParser() {
-            // 需要的属性集合 bookName 在外层，需单独处理
-            final var recognizedProperties = List.of("chapterId", "contUrlSuffix", "chapterOrdid", "chapterName");
             return chapterSource -> CompletableFuture.completedFuture(chapterSource)
                     .whenComplete((r, e) -> log.info("{} - 执行解析章节列表操作", Parser.name()))
                     .thenApplyAsync(JsonUtils::readTree, FlowEngine.IO_TASK_EXECUTOR)// 返回根节点
-                    .thenApplyAsync(rootJsonNode -> {
-                        // 章节列表
-                        var chapterList = rootJsonNode.get("chapterList");
-                        // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}
-                        return IntStream.range(0, chapterList.size())
-                                .mapToObj(chapterList::get)
-                                .map(chapter -> chapter.get("volumeList"))
-                                .flatMap(volumeList -> IntStream.range(0, volumeList.size())
-                                        .mapToObj(volumeList::get)
-                                        .toList()
-                                        .stream())
-                                .map(jsonNode -> {
-                                    // 构建目标 ObjectNode 对象
-                                    var targetObjectNode = JsonUtils.createObjectNode();
-                                    // 从根节点添加 bookName 属性
-                                    targetObjectNode.putIfAbsent("bookName", rootJsonNode.get("bookName"));
-                                    // 添加其余属性
-                                    recognizedProperties.forEach(property -> targetObjectNode.putIfAbsent(property, jsonNode.get(property)));
-                                    return targetObjectNode;
-                                })
-                                .map(chapterJsonNode -> JsonUtils.treeToValue(chapterJsonNode, Chapter.Chapter4Read.class))
-                                .toList();
-                    }, FlowEngine.IO_TASK_EXECUTOR);
+                    .thenApplyAsync(RelayNode::of, FlowEngine.IO_TASK_EXECUTOR)// 转换为中继节点
+                    .thenApplyAsync(RelayNode::map2Chapter4ReadList, FlowEngine.IO_TASK_EXECUTOR);// 转换为 Chapter4ReadList
         }
 
 

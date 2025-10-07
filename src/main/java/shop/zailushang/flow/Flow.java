@@ -92,7 +92,7 @@ public interface Flow<T, R> {
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR)// 提前收集源
                             .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
                             .thenApplyAsync(flowStream -> flowStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 重新排序
-                            .thenApplyAsync(flowStream -> flowStream.map(merge -> Chapter.Chapter4Merge.withSkip(merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
+                            .thenApplyAsync(flowStream -> flowStream.map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
                             .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR);
         }
 
