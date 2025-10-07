@@ -1,5 +1,7 @@
 package shop.zailushang.entity;
 
+import shop.zailushang.flow.FlowEngine;
+
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.List;
@@ -61,5 +63,14 @@ public class Chapter {
 
     // 清理时
     public record Chapter4Clean(String bookName, List<Path> paths) {
+        public static Chapter4Clean of(List<Chapter.Chapter4Merge> chapter4Merges) {
+            var bookName = chapter4Merges.getFirst().bookName();
+            var paths = chapter4Merges.stream().map(Chapter4Merge::filePath).toList();
+            return new Chapter.Chapter4Clean(bookName, paths);
+        }
+
+        public static boolean needDelete(Path unused) {
+            return FlowEngine.NEED_DELETE;
+        }
     }
 }

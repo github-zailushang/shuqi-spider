@@ -21,9 +21,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, Integer capacity,
                        ExecutorService executor) implements IOForkJoinTask<PartBook> {
 
-    // 初始构造
-    public PartBook(List<Chapter.Chapter4Merge> sources) {
-        this(sources, sources.getFirst().orderId(), sources.getLast().orderId(), FlowEngine.DEFAULT_CAPACITY, FlowEngine.IO_TASK_EXECUTOR);
+    // 从 sources 构造
+    public static PartBook of(List<Chapter.Chapter4Merge> sources) {
+        var orderIds = sources.stream().map(Chapter.Chapter4Merge::orderId).toList();
+        return new PartBook(sources, orderIds.getFirst(), orderIds.getLast(), FlowEngine.DEFAULT_CAPACITY, FlowEngine.IO_TASK_EXECUTOR);
     }
 
     public String name() {

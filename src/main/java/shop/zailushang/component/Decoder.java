@@ -17,11 +17,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Format> {
 
     @Override
-    default CompletableFuture<Chapter.Chapter4Format> execute(Chapter.Chapter4Decode chapter) throws Exception {
-        return decode(chapter);
+    default CompletableFuture<Chapter.Chapter4Format> execute(Chapter.Chapter4Decode chapter4Decode) throws Exception {
+        return decode(chapter4Decode);
     }
 
-    CompletableFuture<Chapter.Chapter4Format> decode(Chapter.Chapter4Decode content) throws Exception;
+    CompletableFuture<Chapter.Chapter4Format> decode(Chapter.Chapter4Decode chapter4Decode) throws Exception;
 
     // js 解密
     static String withJsDecode(String ciphertext) {

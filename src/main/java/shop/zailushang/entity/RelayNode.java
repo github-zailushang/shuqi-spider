@@ -7,11 +7,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * 中继节点，存储书籍名称和jsonNode
+ * 中继节点，存储 chapterListNode && bookNameNode
  */
 public record RelayNode(JsonNode chapterListNode, JsonNode bookNameNode) {
-
-
     // 从根节点构建中继节点
     public static RelayNode of(JsonNode rootNode) {
         return new RelayNode(rootNode.get("chapterList"), rootNode.get("bookName"));

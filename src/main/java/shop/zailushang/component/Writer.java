@@ -17,11 +17,11 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merge> {
     @Override
-    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Write chapter) throws Exception {
-        return write(chapter);
+    default CompletableFuture<Chapter.Chapter4Merge> execute(Chapter.Chapter4Write chapter4Write) throws Exception {
+        return write(chapter4Write);
     }
 
-    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Write chapter) throws Exception;
+    CompletableFuture<Chapter.Chapter4Merge> write(Chapter.Chapter4Write chapter4Write) throws Exception;
 
     // 组件名
     static String name() {
@@ -70,19 +70,19 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         // 将章节内容打印在控制台，调试时用
         public static Writer consoleWriter() {
             final var part = "-".repeat(15);
-            return chapter -> CompletableFuture.completedFuture(chapter)
+            return chapter4Write -> CompletableFuture.completedFuture(chapter4Write)
                     .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()))
-                    .thenApplyAsync(cpt -> {
-                        var separator = String.format("%s\t%s\t%s", part, cpt.chapterName(), part);
+                    .thenApplyAsync(c4w -> {
+                        var separator = String.format("%s\t%s\t%s", part, c4w.chapterName(), part);
                         System.out.println(separator);
-                        System.out.println(cpt.chapterContext());
+                        System.out.println(c4w.chapterContext());
                         return Chapter.Chapter4Merge.EMPTY;
                     });
         }
 
         // 将章节内容写入文件
         public static Writer fileWriter() {
-            return chapter -> CompletableFuture.completedFuture(chapter)
+            return chapter4Write -> CompletableFuture.completedFuture(chapter4Write)
                     .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()))
                     .thenComposeAsync(Writer::write0, FlowEngine.IO_TASK_EXECUTOR)
                     .whenComplete((chapter4Merge, e) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()));
