@@ -72,12 +72,9 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
             final var part = "-".repeat(15);
             return chapter4Write -> CompletableFuture.completedFuture(chapter4Write)
                     .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()))
-                    .thenApplyAsync(c4w -> {
-                        var separator = String.format("%s\t%s\t%s", part, c4w.chapterName(), part);
-                        System.out.println(separator);
-                        System.out.println(c4w.chapterContext());
-                        return Chapter.Chapter4Merge.EMPTY;
-                    });
+                    .thenApplyAsync(c4w -> String.format("%s\t%s\t%s\n%s", part, c4w.chapterName(), part, c4w.chapterContext()), FlowEngine.IO_TASK_EXECUTOR)
+                    .whenComplete((chapterContent, e) -> System.out.println(chapterContent))
+                    .thenApplyAsync(unused -> Chapter.Chapter4Merge.EMPTY);
         }
 
         // 将章节内容写入文件
