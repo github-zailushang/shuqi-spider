@@ -12,9 +12,7 @@ import java.util.concurrent.ExecutorService;
  */
 public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
 
-    default Logger logger() {
-        return LoggerFactory.getLogger(this.getClass());
-    }
+    Logger log = LoggerFactory.getLogger(IOForkJoinTask.class);
 
     static String name() {
         return "「天蓬尺」";
@@ -32,12 +30,12 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     // 可以处理的资源数量
     Integer capacity();
 
-    // 是否需要拆分（超出预期可处理数量）
+    // 是否需要拆分（模板方法模式，定义流程算法骨架）
     default Boolean needFork() {
         return (endIndex() - startIndex() + 1) > capacity();
     }
 
-    // 要在线程内执行的任务的起始点
+    // 要在线程内执行的任务的起始点（模板方法模式，定义流程算法骨架）
     default Result compute() {
         return needFork() ? join(fork()) : doCompute();
     }
@@ -54,19 +52,19 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     }
 
     // 具体拆分算法由子类实现
-    IOForkJoinTask<T>[] doFork();
+    T[] doFork();
 
     // 当前任务阻塞等待子任务的返回结果
     @SuppressWarnings("unchecked")
     default Result join(CompletableFuture<Result>... futures) {
         // 返回值用以计算任务成功数量
-        logger().info("{} - 等待子任务返回 ...", IOForkJoinTask.name());
+        log.info("{} - 等待子任务返回 ...", IOForkJoinTask.name());
         // 合并子任务返回结果
         var result = Arrays.stream(futures)
                 .map(CompletableFuture::join)
                 .reduce(Result.ZERO, Result::reduce);
 
-        logger().info("{} - 返回结果:{}", IOForkJoinTask.name(), result);
+        log.info("{} - 返回结果:{}", IOForkJoinTask.name(), result);
         return result;
     }
 
