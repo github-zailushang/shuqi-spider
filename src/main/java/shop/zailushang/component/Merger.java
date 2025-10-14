@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.PartBook;
 import shop.zailushang.flow.FlowEngine;
+import shop.zailushang.utils.BookCache;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +40,7 @@ public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapte
                     .thenApplyAsync(PartBook::of, FlowEngine.IO_TASK_EXECUTOR)
                     .thenApplyAsync(PartBook::compute, FlowEngine.IO_TASK_EXECUTOR)// 提交异步任务
                     .whenComplete((result, e) -> log.info("{} - 执行文件合并操作 成功合并文件数量 => {}", Merger.name(), result.successful()))
+                    .whenComplete((r, e) -> BookCache.removeFileChannel(chapter4Merges.getFirst().bookName()))// 合并完成时关闭文件通道
                     .thenApplyAsync(unused -> Chapter.Chapter4Clean.of(chapter4Merges), FlowEngine.IO_TASK_EXECUTOR);// 继续向后传递文件列表
         }
     }
