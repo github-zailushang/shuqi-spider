@@ -69,7 +69,7 @@ public interface Flow<T, R> {
      */
     class Flows {
         // 完整 下载bid 的流程组装
-        public static Flow<Void, String> bidFlow() {
+        public static Flow<String, String> bidFlow() {
             return () -> Reader.Readers.bidReader()
                     .thenAsync(Selector.Selectors.bidSelector())
                     .thenAsync(Parser.Parsers.bidParser());
