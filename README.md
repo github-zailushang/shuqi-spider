@@ -6,7 +6,7 @@ https://blog.csdn.net/qq_40553917/article/details/140622178
 
 - 功能：Java爬虫
 - 来源：书旗小说网免费章节
-- 环境：JDK21
+- 环境：JDK25
 - 涉及：
 	1. 流程设计
 	2. 设计模式
