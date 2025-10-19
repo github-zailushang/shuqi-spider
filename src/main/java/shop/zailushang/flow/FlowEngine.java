@@ -32,8 +32,10 @@ public class FlowEngine implements AutoCloseable {
      * 这里如直接使用 public static final ExecutorService EXECUTOR = ... 会将 executor 的初始化提前至类初始化阶段
      * 此时属性尚未绑定，调用 key.get() 会导致 NoSuchElementException
      */
+    @SuppressWarnings("preview")
     public static final Supplier<ExecutorService> EXECUTOR_SERVICE_SUPPLIER = StableValue.supplier(() -> ScopedExecutors.newVirtualThreadPerTaskExecutor(BOOK_NAME));
     // http客户端（延迟的传递性：依赖延迟，自身亦当延迟初始化）
+    @SuppressWarnings("preview")
     public static final Supplier<HttpClient> HTTP_CLIENT_SUPPLIER = StableValue.supplier(() -> HttpClient.newBuilder().executor(EXECUTOR_SERVICE_SUPPLIER.get()).build());
 
     // 单例模式：静态实例对象
@@ -61,7 +63,7 @@ public class FlowEngine implements AutoCloseable {
     }
 
     // 组装串联流程
-    public void start() {
+    private void start() {
         try {
             log.info("""
                     \u001B[93m敕令：「
