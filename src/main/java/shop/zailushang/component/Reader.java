@@ -48,10 +48,10 @@ public interface Reader<T, R> extends Task<T, R> {
         }
 
         // 获取bid的http请求器
-        public static Reader<String, String> bidReader() {
+        public static Reader<Void, String> bidReader() {
             // 获取BID的请求地址
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
-            return bookName -> CompletableFuture.completedFuture(bookName)
+            return _ -> CompletableFuture.completedFuture(FlowEngine.BOOK_NAME.get())
                     .thenApplyAsync(bidUriFormatter::formatted, taskExecutor())
                     .whenCompleteAsync((bidUri, _) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri), taskExecutor())
                     .thenComposeAsync(Reader::read0, taskExecutor());

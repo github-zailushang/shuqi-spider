@@ -78,8 +78,7 @@ public class FlowEngine implements AutoCloseable {
             var chapterFlow = Flow.Flows.chapterFlow();
             log.info("\u001B[93m敕令：「二笔祖师剑，神威降尘寰。」\u001B[0m");
             // 组装并启动流程
-            var pendingDownloads = bidFlow.thenAsync(chapterFlow)
-                    .start(BOOK_NAME.get());
+            var pendingDownloads = bidFlow.thenAsync(chapterFlow).start(null);
             // 获取章节内容流程
             var contentListFlow = Flow.Flows.contentListFlow();
             log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
