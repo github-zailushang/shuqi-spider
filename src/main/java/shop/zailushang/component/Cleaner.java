@@ -2,13 +2,14 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
-import shop.zailushang.flow.FlowEngine;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 组件：合并完成后删除零散的章节文件
@@ -47,15 +48,15 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
 
         public static Cleaner fileCleaner() {
             return chapter4Clean -> CompletableFuture.completedFuture(chapter4Clean)
-                    .whenComplete((r, e) -> log.info("{} - 执行文件删除操作", Cleaner.name()))
-                    .thenApplyAsync(Chapter.Chapter4Clean::paths, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(List::parallelStream, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(pathStream -> pathStream.filter(Chapter.Chapter4Clean::needDelete), FlowEngine.IO_TASK_EXECUTOR)// 过滤 是否删除
-                    .thenApplyAsync(pathStream -> pathStream.map(CompletableFuture::completedFuture), FlowEngine.IO_TASK_EXECUTOR)// 每条路径创建异步任务删除
-                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.thenApplyAsync(Cleaner::clean, FlowEngine.IO_TASK_EXECUTOR)), FlowEngine.IO_TASK_EXECUTOR)// 执行删除任务
-                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.whenComplete((path, e) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path))), FlowEngine.IO_TASK_EXECUTOR)// log
-                    .whenComplete((completedFutureStream, e) -> completedFutureStream.forEach(CompletableFuture::join))// 等待所有任务完成
-                    .thenApplyAsync(unused -> null);// 忽略返回值
+                    .whenCompleteAsync((_, _) -> log.info("{} - 执行文件删除操作", Cleaner.name()), taskExecutor())
+                    .thenApplyAsync(Chapter.Chapter4Clean::paths, taskExecutor())
+                    .thenApplyAsync(List::parallelStream, taskExecutor())
+                    .thenApplyAsync(pathStream -> pathStream.filter(Chapter.Chapter4Clean::needDelete), taskExecutor())// 过滤 是否删除
+                    .thenApplyAsync(pathStream -> pathStream.map(CompletableFuture::completedFuture), taskExecutor())// 每条路径创建异步任务删除
+                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.thenApplyAsync(Cleaner::clean, taskExecutor())), taskExecutor())// 执行删除任务
+                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.whenCompleteAsync((path, _) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path), taskExecutor())), taskExecutor())// log
+                    .whenCompleteAsync((completedFutureStream, _) -> completedFutureStream.forEach(CompletableFuture::join), taskExecutor())// 等待所有任务完成
+                    .thenApplyAsync(_ -> null);// 忽略返回值
         }
     }
 }

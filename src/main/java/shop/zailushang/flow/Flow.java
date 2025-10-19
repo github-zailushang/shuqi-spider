@@ -2,13 +2,15 @@ package shop.zailushang.flow;
 
 import shop.zailushang.component.*;
 import shop.zailushang.component.Formatter;
-import shop.zailushang.utils.Assert;
+import shop.zailushang.util.Assert;
 import shop.zailushang.entity.Chapter;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 抽象流程：组装多个 Task，形成一条任务链
@@ -67,7 +69,7 @@ public interface Flow<T, R> {
      */
     class Flows {
         // 完整 下载bid 的流程组装
-        public static Flow<String, String> bidFlow() {
+        public static Flow<Void, String> bidFlow() {
             return () -> Reader.Readers.bidReader()
                     .thenAsync(Selector.Selectors.bidSelector())
                     .thenAsync(Parser.Parsers.bidParser());
@@ -85,15 +87,15 @@ public interface Flow<T, R> {
             final var atoLong = new AtomicLong(0);
             return () ->
                     pendingDownloads -> CompletableFuture.completedFuture(pendingDownloads)
-                            .thenApplyAsync(List::parallelStream, FlowEngine.IO_TASK_EXECUTOR)// 开启并行流加速提交
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), FlowEngine.IO_TASK_EXECUTOR)// 并行流不影响排序语义
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), FlowEngine.IO_TASK_EXECUTOR)// 测试模式下仅下载前 20 章
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.map(Flows.contentFlow()::start), FlowEngine.IO_TASK_EXECUTOR)// 并发式启动下载任务
-                            .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR)// 提前收集源
-                            .thenApplyAsync(List::stream, FlowEngine.IO_TASK_EXECUTOR)
-                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), FlowEngine.IO_TASK_EXECUTOR)// 重新排序
-                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong)), FlowEngine.IO_TASK_EXECUTOR)// 设置 skip 属性
-                            .thenApplyAsync(Stream::toList, FlowEngine.IO_TASK_EXECUTOR);
+                            .thenApplyAsync(List::parallelStream, taskExecutor())// 开启并行流加速提交
+                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), taskExecutor())// 并行流不影响排序语义
+                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), taskExecutor())// 测试模式下仅下载前 20 章
+                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.map(Flows.contentFlow()::start), taskExecutor())// 并发式启动下载任务
+                            .thenApplyAsync(Stream::toList, taskExecutor())// 提前收集源
+                            .thenApplyAsync(List::stream, taskExecutor())
+                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), taskExecutor())// 重新排序
+                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong)), taskExecutor())// 设置 skip 属性
+                            .thenApplyAsync(Stream::toList, taskExecutor());
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]

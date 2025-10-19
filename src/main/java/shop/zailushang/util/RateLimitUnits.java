@@ -1,4 +1,4 @@
-package shop.zailushang.utils;
+package shop.zailushang.util;
 
 import java.util.concurrent.Semaphore;
 

@@ -1,4 +1,4 @@
-package shop.zailushang.utils;
+package shop.zailushang.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

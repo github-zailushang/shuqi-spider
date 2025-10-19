@@ -1,4 +1,4 @@
-package shop.zailushang.utils;
+package shop.zailushang.util;
 
 import shop.zailushang.flow.FlowEngine;
 
@@ -37,7 +37,7 @@ public class BookCache {
 
     // 获取文件通道
     public static FileChannel getFileChannel(String bookName) {
-        return FILE_CHANNEL_MAP.computeIfAbsent(bookName, k -> {
+        return FILE_CHANNEL_MAP.computeIfAbsent(bookName, _ -> {
             try {
                 // 文件夹路径
                 var folderPath = getFolderPath(bookName);
@@ -64,7 +64,7 @@ public class BookCache {
 
     // 删除文件通道
     public static void removeFileChannel(String bookName) {
-        FILE_CHANNEL_MAP.computeIfPresent(bookName, (k, v) -> {
+        FILE_CHANNEL_MAP.computeIfPresent(bookName, (_, v) -> {
             // 关闭文件通道
             try (v) {
                 // 删除文件通道缓存

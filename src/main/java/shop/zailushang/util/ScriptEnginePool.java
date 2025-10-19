@@ -1,4 +1,4 @@
-package shop.zailushang.utils;
+package shop.zailushang.util;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +30,7 @@ public class ScriptEnginePool {
             Assert.isTrue(resourceStream, Assert::isNotNull, () -> new NullPointerException("To be, or not to be, that is the question. — William Shakespeare, Hamlet"));
             JS_SCRIPT = new String(resourceStream.readAllBytes());
             BLOCKING_DEQUE = IntStream.rangeClosed(1, 200)
-                    .mapToObj(unused -> createScriptEngine())
+                    .mapToObj(_ -> createScriptEngine())
                     .collect(Collectors.toCollection(LinkedBlockingDeque::new));
         } catch (Exception e) {
             throw new RuntimeException(e);

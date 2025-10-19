@@ -1,4 +1,4 @@
-package shop.zailushang.utils;
+package shop.zailushang.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

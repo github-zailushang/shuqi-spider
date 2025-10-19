@@ -1,9 +1,10 @@
 package shop.zailushang.entity;
 
 import lombok.extern.slf4j.Slf4j;
+import shop.zailushang.component.Task;
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.BookCache;
-import shop.zailushang.utils.IOForkJoinTask;
+import shop.zailushang.util.BookCache;
+import shop.zailushang.util.IOForkJoinTask;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +26,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
     // 从 sources 构造
     public static PartBook of(List<Chapter.Chapter4Merge> sources) {
         var orderIds = sources.stream().map(Chapter.Chapter4Merge::orderId).toList();
-        return new PartBook(sources, orderIds.getFirst(), orderIds.getLast(), FlowEngine.DEFAULT_CAPACITY, FlowEngine.IO_TASK_EXECUTOR);
+        return new PartBook(sources, orderIds.getFirst(), orderIds.getLast(), FlowEngine.DEFAULT_CAPACITY, Task.taskExecutor());
     }
 
     public String name() {

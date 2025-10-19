@@ -1,11 +1,13 @@
 package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
-import shop.zailushang.utils.Assert;
+import shop.zailushang.util.Assert;
+import shop.zailushang.util.ScopedExecutors;
 
 import java.net.http.HttpClient;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
@@ -21,13 +23,18 @@ public class FlowEngine implements AutoCloseable {
     public static final String FOLDER_FORMATTER = "D:/%s";
     // 每个线程默认处理的章节数量
     public static final Integer DEFAULT_CAPACITY = 5;
-    // io密集型任务线程池 ：使用虚拟线程池
-    public static final ExecutorService IO_TASK_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
-
-    // http客户端
-    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .executor(FlowEngine.IO_TASK_EXECUTOR)
-            .build();
+    // 线程本地变量：传递当前下载的书籍名称
+    public static final ScopedValue<String> BOOK_NAME = ScopedValue.newInstance();
+    /*
+     * io密集型任务线程池 ：使用自定义代理虚拟线程池
+     * 此处使用 StableValue 延迟初始化 executor，因 executor 中需要使用绑定了属性的 BOOK_NAME
+     * BOOK_NAME 属性的绑定的正确时机在调用 start 方法前，executor 正确的的初始化时机，应在其中
+     * 如直接使用 public static final ExecutorService EXECUTOR = ... 会将 executor 的初始化提前至类初始化阶段
+     * 此时属性尚未绑定，调用 key.get() 会导致 NoSuchElementException
+     */
+    public static final Supplier<ExecutorService> EXECUTOR_SERVICE_SUPPLIER = StableValue.supplier(() -> ScopedExecutors.newVirtualThreadPerTaskExecutor(BOOK_NAME));
+    // http客户端（延迟传递：依赖延迟，自己亦当延迟初始化）
+    public static final Supplier<HttpClient> HTTP_CLIENT_SUPPLIER = StableValue.supplier(() -> HttpClient.newBuilder().executor(EXECUTOR_SERVICE_SUPPLIER.get()).build());
 
     // 单例模式：静态实例对象
     // 使用 volatile 修饰，防止指令重排导致的 NPE 问题
@@ -48,7 +55,7 @@ public class FlowEngine implements AutoCloseable {
     }
 
     // 组装串联流程
-    public void start(String bookName) {
+    public void start() {
         try {
             log.info("""
                     \u001B[93m敕令：「
@@ -64,7 +71,6 @@ public class FlowEngine implements AutoCloseable {
                                                                   急急如律令！！！
                                                                 」\u001B[0m
                     """);
-
             // 获取 bid 流程
             var bidFlow = Flow.Flows.bidFlow();
             log.info("\u001B[93m敕令：「一笔天地动，风雷随法涌。」\u001B[0m");
@@ -72,8 +78,7 @@ public class FlowEngine implements AutoCloseable {
             var chapterFlow = Flow.Flows.chapterFlow();
             log.info("\u001B[93m敕令：「二笔祖师剑，神威降尘寰。」\u001B[0m");
             // 组装并启动流程
-            var pendingDownloads = bidFlow.thenAsync(chapterFlow)
-                    .start(bookName);
+            var pendingDownloads = bidFlow.thenAsync(chapterFlow).start(null);
             // 获取章节内容流程
             var contentListFlow = Flow.Flows.contentListFlow();
             log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
@@ -93,8 +98,8 @@ public class FlowEngine implements AutoCloseable {
 
     public void end() {
         log.info("\u001B[92m敕令：「香云奉送，祖师归坛；神兵返驾，各归玄庭！弟子稽首，再沐恩光！散坛！」\u001B[0m");
-        FlowEngine.HTTP_CLIENT.close();
-        FlowEngine.IO_TASK_EXECUTOR.shutdown();
+        FlowEngine.HTTP_CLIENT_SUPPLIER.get().close();
+        FlowEngine.EXECUTOR_SERVICE_SUPPLIER.get().shutdown();
     }
 
     @Override

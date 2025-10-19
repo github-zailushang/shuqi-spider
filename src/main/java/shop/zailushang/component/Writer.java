@@ -2,14 +2,15 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
-import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.BookCache;
+import shop.zailushang.util.BookCache;
 
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.CompletableFuture;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 组件：保存章节内容，将排版后的章节内容写入文件，每章为一个文件
@@ -71,18 +72,18 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
         public static Writer consoleWriter() {
             final var part = "-".repeat(15);
             return chapter4Write -> CompletableFuture.completedFuture(chapter4Write)
-                    .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()))
-                    .thenApplyAsync(c4w -> String.format("%s\t%s\t%s\n%s", part, c4w.chapterName(), part, c4w.chapterContext()), FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((chapterContent, e) -> System.out.println(chapterContent))
-                    .thenApplyAsync(unused -> Chapter.Chapter4Merge.EMPTY);
+                    .whenCompleteAsync((_, _) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()), taskExecutor())
+                    .thenApplyAsync(c4w -> String.format("%s\t%s\t%s\n%s", part, c4w.chapterName(), part, c4w.chapterContext()), taskExecutor())
+                    .whenCompleteAsync((chapterContent, _) -> log.info(chapterContent), taskExecutor())
+                    .thenApplyAsync(_ -> Chapter.Chapter4Merge.EMPTY);
         }
 
         // 将章节内容写入文件
         public static Writer fileWriter() {
             return chapter4Write -> CompletableFuture.completedFuture(chapter4Write)
-                    .whenComplete((r, e) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()))
-                    .thenComposeAsync(Writer::write0, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((chapter4Merge, e) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()));
+                    .whenCompleteAsync((_, _) -> log.info("{} - 执行文件写入操作[文件系统]", Writer.name()), taskExecutor())
+                    .thenComposeAsync(Writer::write0, taskExecutor())
+                    .whenCompleteAsync((chapter4Merge, _) -> log.info("{} - 文件写入操作[文件系统]完成 path => {}", Writer.name(), chapter4Merge.filePath()), taskExecutor());
         }
     }
 }

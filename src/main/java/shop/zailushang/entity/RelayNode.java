@@ -1,7 +1,7 @@
 package shop.zailushang.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import shop.zailushang.utils.JsonUtils;
+import shop.zailushang.util.JsonUtils;
 
 import java.util.List;
 import java.util.stream.IntStream;

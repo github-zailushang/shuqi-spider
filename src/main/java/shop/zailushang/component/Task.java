@@ -1,10 +1,11 @@
 package shop.zailushang.component;
 
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.Assert;
-import shop.zailushang.utils.RateLimitUnits;
+import shop.zailushang.util.Assert;
+import shop.zailushang.util.RateLimitUnits;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -40,7 +41,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
      */
     default <V> Task<T, V> thenAsync(Task<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("An unexamined life is not worth living. — Socrates"));
-        return t -> execute(t).thenComposeAsync(next, FlowEngine.IO_TASK_EXECUTOR);
+        return t -> execute(t).thenComposeAsync(next, taskExecutor());
     }
 
     /**
@@ -54,7 +55,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
      * 空任务
      */
     static <T, R> Task<T, R> empty() {
-        return t -> CompletableFuture.completedFuture(null);
+        return _ -> CompletableFuture.completedFuture(null);
     }
 
     /*
@@ -63,8 +64,15 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     static <T, R> Task<T, ? extends R> withRateLimit(Task<? super T, R> innerTask, long timeout) {
         Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do. — Steve Jobs"));
         return t -> CompletableFuture.completedFuture(t)
-                .thenApplyAsync(RateLimitUnits::<T>acquire, FlowEngine.IO_TASK_EXECUTOR) // 执行任务前获取信号量
-                .thenComposeAsync(innerTask, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, FlowEngine.IO_TASK_EXECUTOR))// 使用包装后带延时的线程池
+                .thenApplyAsync(RateLimitUnits::<T>acquire, taskExecutor()) // 执行任务前获取信号量
+                .thenComposeAsync(innerTask, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, taskExecutor()))// 使用包装后带延时的线程池
                 .whenComplete(RateLimitUnits::release); // 任务结束时释放信号量
+    }
+
+    /**
+     * 延迟初始化任务执行器
+     */
+    static ExecutorService taskExecutor() {
+        return FlowEngine.EXECUTOR_SERVICE_SUPPLIER.get();
     }
 }

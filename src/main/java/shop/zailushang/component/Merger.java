@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.PartBook;
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.BookCache;
+import shop.zailushang.util.BookCache;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 组件：执行文件合并操作
@@ -36,12 +38,12 @@ public interface Merger extends Task<List<Chapter.Chapter4Merge>, Chapter.Chapte
 
         public static Merger fileMerger() {
             return chapter4Merges -> CompletableFuture.completedFuture(chapter4Merges)
-                    .whenComplete((r, e) -> log.info("{} - 执行文件合并操作 待合并文件数量 => {}", Merger.name(), chapter4Merges.size()))
-                    .thenApplyAsync(PartBook::of, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(PartBook::compute, FlowEngine.IO_TASK_EXECUTOR)// 提交异步任务
-                    .whenComplete((result, e) -> log.info("{} - 执行文件合并操作 成功合并文件数量 => {}", Merger.name(), result.successful()))
-                    .whenComplete((r, e) -> BookCache.removeFileChannel(chapter4Merges.getFirst().bookName()))// 合并完成时关闭文件通道
-                    .thenApplyAsync(unused -> Chapter.Chapter4Clean.of(chapter4Merges), FlowEngine.IO_TASK_EXECUTOR);// 继续向后传递文件列表
+                    .whenCompleteAsync((_, _) -> log.info("{} - 执行文件合并操作 待合并文件数量 => {}", Merger.name(), chapter4Merges.size()), taskExecutor())
+                    .thenApplyAsync(PartBook::of, taskExecutor())
+                    .thenApplyAsync(PartBook::compute, taskExecutor())// 提交异步任务
+                    .whenCompleteAsync((result, _) -> log.info("{} - 执行文件合并操作 成功合并文件数量 => {}", Merger.name(), result.successful()), taskExecutor())
+                    .whenCompleteAsync((_, _) -> BookCache.removeFileChannel(FlowEngine.BOOK_NAME.get()), taskExecutor())// 合并完成时关闭文件通道
+                    .thenApplyAsync(_ -> Chapter.Chapter4Clean.of(chapter4Merges), taskExecutor());// 继续向后传递文件列表
         }
     }
 }

@@ -3,12 +3,14 @@ package shop.zailushang.component;
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.RateLimitUnits;
+import shop.zailushang.util.RateLimitUnits;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 组件：发送请求，获取响应文本
@@ -29,8 +31,8 @@ public interface Reader<T, R> extends Task<T, R> {
                 //.header("cookie", "") // 此处添加 VIP账号权限
                 .build();
 
-        return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApplyAsync(HttpResponse::body, FlowEngine.IO_TASK_EXECUTOR);
+        return FlowEngine.HTTP_CLIENT_SUPPLIER.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApplyAsync(HttpResponse::body, taskExecutor());
     }
 
     // 组件名
@@ -46,13 +48,13 @@ public interface Reader<T, R> extends Task<T, R> {
         }
 
         // 获取bid的http请求器
-        public static Reader<String, String> bidReader() {
+        public static Reader<Void, String> bidReader() {
             // 获取BID的请求地址
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
-            return bookName -> CompletableFuture.completedFuture(bookName)
-                    .thenApplyAsync(bidUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((bidUri, e) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri))
-                    .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
+            return _ -> CompletableFuture.completedFuture(FlowEngine.BOOK_NAME.get())
+                    .thenApplyAsync(bidUriFormatter::formatted, taskExecutor())
+                    .whenCompleteAsync((bidUri, _) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri), taskExecutor())
+                    .thenComposeAsync(Reader::read0, taskExecutor());
         }
 
         // 获取章节列表的http请求器
@@ -60,9 +62,9 @@ public interface Reader<T, R> extends Task<T, R> {
             // 获取章节列表的请求地址
             final var chapterUriFormatter = "https://www.shuqi.com/reader?bid=%s";
             return bid -> CompletableFuture.completedFuture(bid)
-                    .thenApplyAsync(chapterUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((chapterUri, e) -> log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri))
-                    .thenComposeAsync(Reader::read0, FlowEngine.IO_TASK_EXECUTOR);
+                    .thenApplyAsync(chapterUriFormatter::formatted, taskExecutor())
+                    .whenCompleteAsync((chapterUri, _) -> log.info("{} - 执行获取章节列表操作 url => {}", Reader.name(), chapterUri), taskExecutor())
+                    .thenComposeAsync(Reader::read0, taskExecutor());
         }
 
         // 获取章节内容的http请求器
@@ -70,11 +72,11 @@ public interface Reader<T, R> extends Task<T, R> {
             // 获取章节内容请求地址
             final var contentUriFormatter = "https://c13.shuqireader.com/pcapi/chapter/contentfree/%s";
             return chapter4Read -> CompletableFuture.completedFuture(chapter4Read)
-                    .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(contentUriFormatter::formatted, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((contentUri, e) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri))
-                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.TIMEOUT), FlowEngine.IO_TASK_EXECUTOR)
-                    .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), FlowEngine.IO_TASK_EXECUTOR);
+                    .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, taskExecutor())
+                    .thenApplyAsync(contentUriFormatter::formatted, taskExecutor())
+                    .whenCompleteAsync((contentUri, _) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri), taskExecutor())
+                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.TIMEOUT), taskExecutor())
+                    .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), taskExecutor());
         }
     }
 }

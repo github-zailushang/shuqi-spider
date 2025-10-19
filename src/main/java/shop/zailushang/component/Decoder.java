@@ -3,12 +3,14 @@ package shop.zailushang.component;
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.utils.Assert;
-import shop.zailushang.utils.ScriptEnginePool;
+import shop.zailushang.util.Assert;
+import shop.zailushang.util.ScriptEnginePool;
 
 import javax.script.Invocable;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
+
+import static shop.zailushang.component.Task.taskExecutor;
 
 /**
  * 组件：解密加密的章节内容
@@ -89,11 +91,11 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
 
         public static Decoder contentDecoder() {
             return chapter4Decode -> CompletableFuture.completedFuture(chapter4Decode)
-                    .whenComplete((r, e) -> log.info("{} - 执行解密操作", Decoder.name()))
-                    .thenApplyAsync(Chapter.Chapter4Decode::ciphertext, FlowEngine.IO_TASK_EXECUTOR)
-                    .whenComplete((ciphertext, e) -> Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。")))
-                    .thenApplyAsync(FlowEngine.USE_NATIVE ? Decoder::withNativeDecode : Decoder::withJsDecode, FlowEngine.IO_TASK_EXECUTOR)// 根据配置选择解密方式
-                    .thenApplyAsync(unformattedChapterContent -> new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent), FlowEngine.IO_TASK_EXECUTOR);
+                    .whenCompleteAsync((_, _) -> log.info("{} - 执行解密操作", Decoder.name()), taskExecutor())
+                    .thenApplyAsync(Chapter.Chapter4Decode::ciphertext, taskExecutor())
+                    .whenCompleteAsync((ciphertext, _) -> Assert.isTrue(ciphertext, Assert::isNotNull, () -> new NullPointerException("无法下载VIP章节，如已开通VIP账号，请自行添加VIP权限校验。")), taskExecutor())
+                    .thenApplyAsync(FlowEngine.USE_NATIVE ? Decoder::withNativeDecode : Decoder::withJsDecode, taskExecutor())// 根据配置选择解密方式
+                    .thenApplyAsync(unformattedChapterContent -> new Chapter.Chapter4Format(chapter4Decode.bookName(), chapter4Decode.chapterName(), chapter4Decode.chapterOrdid(), unformattedChapterContent), taskExecutor());
         }
     }
 }
