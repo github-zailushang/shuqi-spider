@@ -28,12 +28,12 @@ public class FlowEngine implements AutoCloseable {
     /*
      * io密集型任务线程池 ：使用自定义代理虚拟线程池
      * 此处使用 StableValue 延迟初始化 executor，因 executor 中需要使用绑定了属性的 BOOK_NAME
-     * BOOK_NAME 属性的绑定的正确时机在调用 start 方法前，executor 正确的初始化时机，应在其中
-     * 如直接使用 public static final ExecutorService EXECUTOR = ... 会将 executor 的初始化提前至类初始化阶段
+     * BOOK_NAME 属性的绑定的正确时机在调用 start 方法前，executor 正确的初始化时机，应滞于其后
+     * 这里如直接使用 public static final ExecutorService EXECUTOR = ... 会将 executor 的初始化提前至类初始化阶段
      * 此时属性尚未绑定，调用 key.get() 会导致 NoSuchElementException
      */
     public static final Supplier<ExecutorService> EXECUTOR_SERVICE_SUPPLIER = StableValue.supplier(() -> ScopedExecutors.newVirtualThreadPerTaskExecutor(BOOK_NAME));
-    // http客户端（延迟传递性：依赖延迟，自身亦当延迟初始化）
+    // http客户端（延迟的传递性：依赖延迟，自身亦当延迟初始化）
     public static final Supplier<HttpClient> HTTP_CLIENT_SUPPLIER = StableValue.supplier(() -> HttpClient.newBuilder().executor(EXECUTOR_SERVICE_SUPPLIER.get()).build());
 
     // 单例模式：静态实例对象
