@@ -14,7 +14,7 @@ public class ScopedExecutors {
      * 动态代理模式，代理一个虚拟线程池，线程池中的任务会自动"继承"提交任务线程中的 ScopedValue 值
      * 调用前置要求：必须事先设置了 ScopedValue 值，在 ScopedValue 有效域中调用
      * 即: ScopedValue.where(key, value).run(()->ScopedExecutors.newVirtualThreadPerTaskExecutor(key))
-     * 返回的 executor 会"继承"上一级域中的 ScopedValue 值并重新设定，「子又生孙，孙又生子；子又有子，子又有孙；子子孙孙无穷匮也」
+     * 返回的 executor 会"继承"上一级域中的 ScopedValue 值并重新设定，「子又生孙，孙又生子；子又有子，子又有孙；子子孙孙无穷匮也，子孙之乐，得之心而寓之 ScopedValue 也。」
      * 从而实现链式传递 ScopedValue 值
      */
     public static <T> ExecutorService newVirtualThreadPerTaskExecutor(ScopedValue<T> key) {
