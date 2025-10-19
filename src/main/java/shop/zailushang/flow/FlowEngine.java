@@ -54,6 +54,12 @@ public class FlowEngine implements AutoCloseable {
         });
     }
 
+    // 启动流程引擎，设置书籍名称的作用域变量
+    public void start(String bookName) {
+        ScopedValue.where(FlowEngine.BOOK_NAME, bookName)
+                .run(this::start);
+    }
+
     // 组装串联流程
     public void start() {
         try {

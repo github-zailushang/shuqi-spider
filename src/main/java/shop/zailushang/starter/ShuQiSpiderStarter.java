@@ -1,7 +1,6 @@
 import shop.zailushang.component.Reader;
 import shop.zailushang.flow.FlowEngine;
 
-
 /**
  * 本程序在编时，该网站大多数书籍均为免费阅读，后该网站调整运营策略，全文章需要 VIP校验，仅前 20 章可免费阅读
  * 最新流程：    Reader[载]  →  Selector[择]  →  Parser[析]  →  Decoder[译]  →  Formatter[椠]  →  Writer[录]  →  Merger[撰]  →  Cleaner[涤]
@@ -18,10 +17,10 @@ void main() {
     System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
     try (var engine = FlowEngine.getDefaultFlowEngine()) {
         // 单独下载一本
-        //ScopedValue.where(FlowEngine.BOOK_NAME, "武动乾坤").run(engine::start);
+        //engine.start("武动乾坤");
         // 多本一起下
         List.of("斗破苍穹", "武动乾坤", "大主宰", "元尊")
                 .parallelStream()
-                .forEach(bookName -> ScopedValue.where(FlowEngine.BOOK_NAME, bookName).run(engine::start));
+                .forEach(engine::start);
     }
 }
