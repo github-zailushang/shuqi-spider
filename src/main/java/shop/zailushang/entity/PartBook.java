@@ -38,9 +38,8 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
         var name = name();
         log.info("{} - 准备合并 [{} ~ {}]", name, startIndex, endIndex);
 
-        // 获取由当前线程处理的首个资源
-        var first = sources.get(startIndex - 1);
-        var bookName = first.bookName();
+        // 书籍名称
+        var bookName = FlowEngine.BOOK_NAME.get();
         // 获取目标文件通道
         var targetFileChannel = BookCache.getFileChannel(bookName);
         var atoLong = new AtomicLong(0);
