@@ -55,7 +55,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
      * 空任务
      */
     static <T, R> Task<T, R> empty() {
-        return _ -> CompletableFuture.completedFuture(null);
+        return _ -> CompletableFuture.completedFuture((R) null);
     }
 
     /*
@@ -66,7 +66,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         return t -> CompletableFuture.completedFuture(t)
                 .thenApplyAsync(RateLimitUnits::<T>acquire, taskExecutor()) // 执行任务前获取信号量
                 .thenComposeAsync(innerTask, CompletableFuture.delayedExecutor(timeout, TimeUnit.SECONDS, taskExecutor()))// 使用包装后带延时的线程池
-                .whenComplete(RateLimitUnits::release); // 任务结束时释放信号量
+                .whenCompleteAsync(RateLimitUnits::release, taskExecutor()); // 任务结束时释放信号量
     }
 
     /**

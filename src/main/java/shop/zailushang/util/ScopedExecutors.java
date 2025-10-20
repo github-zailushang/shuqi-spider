@@ -11,11 +11,23 @@ public class ScopedExecutors {
     private static final ExecutorService DELEGATE = Executors.newVirtualThreadPerTaskExecutor();
 
     /**
-     * 动态代理模式，代理一个虚拟线程池，线程池中的任务会自动"继承"提交任务线程中的 ScopedValue 值
-     * 调用前置要求：必须事先设置了 ScopedValue 值，在 ScopedValue 有效域中调用
-     * 即: ScopedValue.where(key, value).run(()->ScopedExecutors.newVirtualThreadPerTaskExecutor(key))
-     * 返回的 executor 会"继承"上一级域中的 ScopedValue 值并重新设定，「子又生孙，孙又生子；子又有子，子又有孙；子子孙孙无穷匮也，子孙之乐，得之心而寓之 ScopedValue 也。」
-     * 从而实现链式传递 ScopedValue 值
+     * 动态代理模式。
+     * <p>
+     * 返回一个经过代理的专用虚拟线程池。向此线程池中提交任务时，任务会自动"继承"提交任务线程（上一级域）中设置的 {@code ScopedValue} 值，并在执行时重新绑定。
+     * <p>
+     * <b>实际调用链路：</b>
+     * <pre>{@code
+     * ScopedValue.where(key, value).run(() -> {
+     *     // 初始化此线程池之前，必须事先设置了 ScopedValue 值，即必须在 ScopedValue 有效域中调用
+     *     // 此处为 main 线程（下载单本时）或者 ForkJoinPool 线程（下载多本时）
+     *     var executor = ScopedExecutors.newVirtualThreadPerTaskExecutor(key);
+     *
+     *     CompletableFuture.supplyAsync(() -> {}, executor) // virtualThread-1，"继承"上一级域【main || forkJoinPool】中的 ScopedValue 并重新设定值，执行任务1
+     *         .thenApply(..., executor) // virtualThread-2，"继承"上一级域【virtualThread-1】中的 ScopedValue 并重新设定值，执行任务2
+     *         .thenApply(..., executor); // virtualThread-3，"继承"上一级域【virtualThread-2】中的 ScopedValue 并重新设定值，执行任务3
+     *         // 子又生孙，孙又生子；子又有子，子又有孙；子子孙孙无穷匮也，子孙之乐，得之心而寓之 ScopedValue 也。最终实现 ScopedValue 值在异步任务中链式传递。
+     * });
+     * }</pre>
      */
     public static <T> ExecutorService newVirtualThreadPerTaskExecutor(ScopedValue<T> key) {
         // 注意：当前操作环境为提交任务的线程

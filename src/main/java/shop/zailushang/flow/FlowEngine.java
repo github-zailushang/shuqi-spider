@@ -25,10 +25,10 @@ public class FlowEngine implements AutoCloseable {
     public static final Integer DEFAULT_CAPACITY = 5;
     // 线程本地变量：传递当前下载的书籍名称
     public static final ScopedValue<String> BOOK_NAME = ScopedValue.newInstance();
-    /*
+    /**
      * io密集型任务线程池 ：使用自定义代理虚拟线程池
      * 此处使用 StableValue 延迟初始化 executor，因 executor 中需要使用绑定了属性的 BOOK_NAME
-     * BOOK_NAME 属性的绑定的正确时机在调用 start 方法前，executor 正确的初始化时机，应滞于其后
+     * BOOK_NAME 属性绑定的正确时机在调用 {@link FlowEngine#start(String)} 方法时，executor 正确的初始化时机，应滞于其后
      * 这里如直接使用 public static final ExecutorService EXECUTOR = ... 会将 executor 的初始化提前至类初始化阶段
      * 此时属性尚未绑定，调用 key.get() 会导致 NoSuchElementException
      */
@@ -58,8 +58,7 @@ public class FlowEngine implements AutoCloseable {
 
     // 启动流程引擎，设置书籍名称的作用域变量
     public void start(String bookName) {
-        ScopedValue.where(FlowEngine.BOOK_NAME, bookName)
-                .run(this::start);
+        ScopedValue.where(BOOK_NAME, bookName).run(this::start);
     }
 
     // 组装串联流程

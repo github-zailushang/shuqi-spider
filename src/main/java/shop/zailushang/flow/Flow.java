@@ -84,7 +84,7 @@ public interface Flow<T, R> {
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
-            final var atoLong = new AtomicLong(0);
+            final var atoLong = new AtomicLong(0L);
             return () ->
                     pendingDownloads -> CompletableFuture.completedFuture(pendingDownloads)
                             .thenApplyAsync(List::parallelStream, taskExecutor())// 开启并行流加速提交

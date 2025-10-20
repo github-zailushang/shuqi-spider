@@ -56,7 +56,7 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
                     .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.thenApplyAsync(Cleaner::clean, taskExecutor())), taskExecutor())// 执行删除任务
                     .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.whenCompleteAsync((path, _) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path), taskExecutor())), taskExecutor())// log
                     .whenCompleteAsync((completedFutureStream, _) -> completedFutureStream.forEach(CompletableFuture::join), taskExecutor())// 等待所有任务完成
-                    .thenApplyAsync(_ -> null);// 忽略返回值
+                    .thenApplyAsync(_ -> null, taskExecutor());// 忽略返回值
         }
     }
 }

@@ -75,7 +75,7 @@ public interface Writer extends Task<Chapter.Chapter4Write, Chapter.Chapter4Merg
                     .whenCompleteAsync((_, _) -> log.info("{} - 执行文件写入操作[控制台]", Writer.name()), taskExecutor())
                     .thenApplyAsync(c4w -> String.format("%s\t%s\t%s\n%s", part, c4w.chapterName(), part, c4w.chapterContext()), taskExecutor())
                     .whenCompleteAsync((chapterContent, _) -> log.info(chapterContent), taskExecutor())
-                    .thenApplyAsync(_ -> Chapter.Chapter4Merge.EMPTY);
+                    .thenApplyAsync(_ -> Chapter.Chapter4Merge.EMPTY, taskExecutor());
         }
 
         // 将章节内容写入文件
