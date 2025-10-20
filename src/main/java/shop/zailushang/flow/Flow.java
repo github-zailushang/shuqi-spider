@@ -2,6 +2,7 @@ package shop.zailushang.flow;
 
 import shop.zailushang.component.*;
 import shop.zailushang.component.Formatter;
+import shop.zailushang.entity.Tao;
 import shop.zailushang.util.Assert;
 import shop.zailushang.entity.Chapter;
 
@@ -69,7 +70,7 @@ public interface Flow<T, R> {
      */
     class Flows {
         // 完整 下载bid 的流程组装
-        public static Flow<Void, String> bidFlow() {
+        public static Flow<Tao, String> bidFlow() {
             return () -> Reader.Readers.bidReader()
                     .thenAsync(Selector.Selectors.bidSelector())
                     .thenAsync(Parser.Parsers.bidParser());
@@ -109,7 +110,7 @@ public interface Flow<T, R> {
         }
 
         // 完整 合并文件 的流程组装
-        public static Flow<List<Chapter.Chapter4Merge>, Void> mergeFlow() {
+        public static Flow<List<Chapter.Chapter4Merge>, Tao> mergeFlow() {
             return FlowEngine.IS_DEBUG ? Flow.empty() :
                     () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
         }

@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.entity.Tao;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.util.RateLimitUnits;
 
@@ -48,7 +49,7 @@ public interface Reader<T, R> extends Task<T, R> {
         }
 
         // 获取bid的http请求器
-        public static Reader<Void, String> bidReader() {
+        public static Reader<Tao, String> bidReader() {
             // 获取BID的请求地址
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
             return _ -> CompletableFuture.completedFuture(FlowEngine.BOOK_NAME.get())

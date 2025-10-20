@@ -2,6 +2,7 @@ package shop.zailushang.component;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
+import shop.zailushang.entity.Tao;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,14 +16,14 @@ import static shop.zailushang.component.Task.taskExecutor;
  * 组件：合并完成后删除零散的章节文件
  */
 @FunctionalInterface
-public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
+public interface Cleaner extends Task<Chapter.Chapter4Clean, Tao> {
 
     @Override
-    default CompletableFuture<Void> execute(Chapter.Chapter4Clean chapter4Clean) throws Exception {
+    default CompletableFuture<Tao> execute(Chapter.Chapter4Clean chapter4Clean) throws Exception {
         return clean(chapter4Clean);
     }
 
-    CompletableFuture<Void> clean(Chapter.Chapter4Clean chapter4Clean) throws Exception;
+    CompletableFuture<Tao> clean(Chapter.Chapter4Clean chapter4Clean) throws Exception;
 
     // 删除文件
     static Path clean(Path path) {
@@ -56,7 +57,7 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Void> {
                     .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.thenApplyAsync(Cleaner::clean, taskExecutor())), taskExecutor())// 执行删除任务
                     .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.whenCompleteAsync((path, _) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path), taskExecutor())), taskExecutor())// log
                     .whenCompleteAsync((completedFutureStream, _) -> completedFutureStream.forEach(CompletableFuture::join), taskExecutor())// 等待所有任务完成
-                    .thenApplyAsync(_ -> null, taskExecutor());// 忽略返回值
+                    .thenApplyAsync(_ -> Tao.CHAOS, taskExecutor());//
         }
     }
 }

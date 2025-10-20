@@ -1,6 +1,7 @@
 package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
+import shop.zailushang.entity.Tao;
 import shop.zailushang.util.Assert;
 import shop.zailushang.util.ScopedExecutors;
 
@@ -58,11 +59,11 @@ public class FlowEngine implements AutoCloseable {
 
     // 启动流程引擎，设置书籍名称的作用域变量
     public void start(String bookName) {
-        ScopedValue.where(BOOK_NAME, bookName).run(this::start);
+        ScopedValue.where(BOOK_NAME, bookName).run(this::start0);
     }
 
     // 组装串联流程
-    private void start() {
+    private void start0() {
         try {
             log.info("""
                     \u001B[93m敕令：「
@@ -84,18 +85,17 @@ public class FlowEngine implements AutoCloseable {
             // 获取章节列表流程
             var chapterFlow = Flow.Flows.chapterFlow();
             log.info("\u001B[93m敕令：「二笔祖师剑，神威降尘寰。」\u001B[0m");
-            // 组装并启动流程
-            var pendingDownloads = bidFlow.thenAsync(chapterFlow).start(null);
             // 获取章节内容流程
             var contentListFlow = Flow.Flows.contentListFlow();
             log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
-            // 启动获取章节内容流程
-            var sources = contentListFlow.start(pendingDownloads);
             // 获取文件合并流程
-            var mergedFlow = Flow.Flows.mergeFlow();
+            var mergeFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
-            // 启动文件合并流程
-            mergedFlow.start(sources);
+            // 道本溯源，起始亦是终，始于道，亦终于道
+            Tao tao = bidFlow.thenAsync(chapterFlow)
+                    .thenAsync(contentListFlow)
+                    .thenAsync(mergeFlow)
+                    .start(Tao.CHAOS);
             log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
         } catch (Exception e) {
             log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
