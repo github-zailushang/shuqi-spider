@@ -91,11 +91,13 @@ public class FlowEngine implements AutoCloseable {
             // The Three gives birth to the ten thousand things.
             var mergeFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
+            // 无名天地之始
+            var tao = Tao.CHAOS;
             // 道本溯源，起始亦是终，始于道，亦终于道
-            var tao = bidFlow.thenAsync(chapterFlow)
+            tao = bidFlow.thenAsync(chapterFlow)
                     .thenAsync(contentListFlow)
                     .thenAsync(mergeFlow)
-                    .start(Tao.CHAOS);// 无名天地之始
+                    .start(tao);
             log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
         } catch (Exception e) {
             log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
