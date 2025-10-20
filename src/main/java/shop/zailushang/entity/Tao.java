@@ -7,7 +7,7 @@ package shop.zailushang.entity;
  * The Two gives birth to the Three.【二生三】
  * The Three gives birth to the ten thousand things.【三生万物】
  */
-public class Tao {
+public final class Tao {
     /**
      * 有物混成，
      * 先天地生，
