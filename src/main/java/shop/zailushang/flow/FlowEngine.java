@@ -79,23 +79,23 @@ public class FlowEngine implements AutoCloseable {
                                                                   急急如律令！！！
                                                                 」\u001B[0m
                     """);
-            // 获取 bid 流程
+            // The Tao gives birth to the One.
             var bidFlow = Flow.Flows.bidFlow();
             log.info("\u001B[93m敕令：「一笔天地动，风雷随法涌。」\u001B[0m");
-            // 获取章节列表流程
+            // The One gives birth to the Two.
             var chapterFlow = Flow.Flows.chapterFlow();
             log.info("\u001B[93m敕令：「二笔祖师剑，神威降尘寰。」\u001B[0m");
-            // 获取章节内容流程
+            // The Two gives birth to the Three.
             var contentListFlow = Flow.Flows.contentListFlow();
             log.info("\u001B[93m敕令：「三笔凶神灭，煞气皆溃裂。」\u001B[0m");
-            // 获取文件合并流程
+            // The Three gives birth to the ten thousand things.
             var mergeFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
             // 道本溯源，起始亦是终，始于道，亦终于道
-            Tao tao = bidFlow.thenAsync(chapterFlow)
+            var tao = bidFlow.thenAsync(chapterFlow)
                     .thenAsync(contentListFlow)
                     .thenAsync(mergeFlow)
-                    .start(Tao.CHAOS);
+                    .start(Tao.CHAOS);// 无名天地之始
             log.info("\u001B[93m敕令：「笔收星芒，符镇八荒，朱砂既凝，邪魔永丧。」 ~ 「镇」\u001B[0m");
         } catch (Exception e) {
             log.error("\u001B[91m敕令：「心念不纯，符窍无光！僭请神明，触怒天罡！伏请三清垂慈，赦宥愚诚！」\u001B[0m");
