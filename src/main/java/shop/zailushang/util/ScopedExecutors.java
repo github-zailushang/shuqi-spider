@@ -30,17 +30,19 @@ public class ScopedExecutors {
      * }</pre>
      */
     public static <T> ExecutorService newVirtualThreadPerTaskExecutor(ScopedValue<T> key) {
-        // 注意：当前操作环境为提交任务的线程
+        // 操作环境提醒【初始化线程】
         var cls = DELEGATE.getClass();
-        // 在提交任务的线程中获取 ScopedValue 值
-        var value = key.get();
+        // 兜底初始值，仅捕获一次
+        final var initialValue = key.get();
         return (ExecutorService) Proxy.newProxyInstance(cls.getClassLoader(), cls.getInterfaces(), (_, method, args) -> {
             // 仅代理提交方法 execute（execute 会在 CompletableFuture 中调用，submit 则不必理会，无人在意）
-            if ("execute".equals(method.getName()) && args.length > 0 && args[0] instanceof Runnable r)
-                // 只包装参数，不改变统一调用方式
-                // 为每一个新开启的虚拟线程设置 ScopedValue 值
-                args[0] = (Runnable) () -> ScopedValue.where(key, value).run(r);// 注意：此处操作环境为新开启的虚拟线程
-            // 调用原始方法，但参数经过处理
+            if ("execute".equals(method.getName()) && args.length > 0 && args[0] instanceof Runnable r) {
+                // 操作环境提醒【提交任务线程】，从提交任务的线程域中获取 ScopedValue 值，每次方法调用时捕获，未绑定时，则取初始默认值
+                var upperLevelValue = key.isBound() ? key.get() : initialValue;
+                // 操作环境提醒【新开启的虚拟线程】，包装参数 => 为每一个新开启的虚拟线程设置 ScopedValue 值
+                args[0] = (Runnable) () -> ScopedValue.where(key, upperLevelValue).run(r);
+            }
+            // 只包装参数，不改变统一调用方式，调用原始方法，但参数经过处理
             return method.invoke(DELEGATE, args);
         });
     }
