@@ -38,7 +38,7 @@ public class ScopedExecutors {
             // 仅代理提交方法 execute（execute 会在 CompletableFuture 中调用，submit 则不必理会，无人在意）
             if ("execute".equals(method.getName()) && args.length > 0 && args[0] instanceof Runnable r) {
                 // 操作环境提醒【提交任务线程】，从提交任务的线程域中获取 ScopedValue 值，每次方法调用时捕获，未绑定时，则取初始默认值
-                // 再补充一句，适用兜底值适用于全局传递定值，如需要在异步任务中传递变化的值，则需要在 CompletableFuture 中全链路异步，自行在异步任务中绑定新的 ScopedValue 值
+                // 再补充一句，兜底值适用于全局传递定值，如需要在异步任务中传递变化的值，则需要在 CompletableFuture 中全链路异步，自行在异步任务中绑定新的 ScopedValue 值
                 var upperLevelValue = key.isBound() ? key.get() : initialValue;
                 // 操作环境提醒【新开启的虚拟线程】，包装参数 => 为每一个新开启的虚拟线程设置 ScopedValue 值
                 args[0] = (Runnable) () -> ScopedValue.where(key, upperLevelValue).run(r);
