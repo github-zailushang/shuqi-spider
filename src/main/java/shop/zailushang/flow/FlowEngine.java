@@ -92,7 +92,7 @@ public class FlowEngine implements AutoCloseable {
             var mergeFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
             // 无名天地之始
-            var tao = Tao.CHAOS;
+            var tao = Tao.TAO;
             // 道本溯源，起始亦是终，始于道，亦终于道
             tao = bidFlow.thenAsync(chapterFlow)
                     .thenAsync(contentListFlow)
