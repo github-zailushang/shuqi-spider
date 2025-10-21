@@ -1,7 +1,6 @@
 package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
-import shop.zailushang.entity.Tao;
 import shop.zailushang.util.Assert;
 import shop.zailushang.util.ScopedExecutors;
 
@@ -9,6 +8,8 @@ import java.net.http.HttpClient;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+
+import static shop.zailushang.entity.Tao.TAO;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
@@ -92,7 +93,7 @@ public class FlowEngine implements AutoCloseable {
             var mergeFlow = Flow.Flows.mergeFlow();
             log.info("\u001B[93m敕令：「四笔煞无形，乾坤朗朗清。」\u001B[0m");
             // 无名天地之始
-            var tao = Tao.TAO;
+            var tao = TAO;
             // 道本溯源，起始亦是终，始于道，亦终于道
             tao = bidFlow.thenAsync(chapterFlow)
                     .thenAsync(contentListFlow)
