@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 
 // F**K checked Exception in read Json
-public class JsonUtils {
+public class CheckedExceptionFucker {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static ObjectNode createObjectNode() {
@@ -34,6 +38,15 @@ public class JsonUtils {
         try {
             return OBJECT_MAPPER.treeToValue(objectNode, cls);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Path deleteIfExists(Path path) {
+        try {
+            Files.deleteIfExists(path);
+            return path;
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

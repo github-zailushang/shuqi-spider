@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /*
  * 抽象通用节点
  */
 @FunctionalInterface
+@SuppressWarnings("all")
 public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
 
     @Override
@@ -84,16 +86,15 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     /**
      * 并行任务
      */
-    @SuppressWarnings("unchecked")
     static <T, R> Task<List<T>, List<R>> parallelTask(Function<List<T>, List<T>> before, Task<? super T, R> task, Function<List<R>, List<R>> andThen) {
         Assert.isTrue(task, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
-        return items -> {
-            var array = before.apply(items) // 前置处理
-                    .stream().map(task).toArray(CompletableFuture[]::new);
-            return CompletableFuture.allOf(array)
-                    .thenApplyAsync(_ -> Arrays.stream(array).map(future -> (R) future.join()).toList(), taskExecutor())
-                    .thenApplyAsync(andThen, taskExecutor());// 后置处理
-        };
+        final var atomicReference = new AtomicReference<CompletableFuture[]>();
+        return items -> CompletableFuture.completedFuture(items)
+                .thenApplyAsync(before, taskExecutor()) // 参数前置处理
+                .thenApplyAsync(list -> atomicReference.updateAndGet(_ -> list.stream().map(task).toArray(CompletableFuture[]::new)), taskExecutor()) // 并行执行任务
+                .thenComposeAsync(CompletableFuture::allOf, taskExecutor()) // 等待所有任务完成
+                .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(future -> (R) future.join()).toList(), taskExecutor())
+                .thenApplyAsync(andThen, taskExecutor()); // 返回值后置处理
     }
 
     /*

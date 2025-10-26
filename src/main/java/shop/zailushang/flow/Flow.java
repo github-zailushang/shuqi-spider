@@ -83,7 +83,7 @@ public interface Flow<T, R> {
 
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
-            final var atoLong = new AtomicLong(0L);
+            final var atomicLong = new AtomicLong(0L);
             return parallelFlow(
                     chapter4Reads -> chapter4Reads.stream()
                             .sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)) // 排序
@@ -92,7 +92,7 @@ public interface Flow<T, R> {
                     Flows.contentFlow(),
                     chapter4Merges -> chapter4Merges.stream()
                             .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId))
-                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong))
+                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong))
                             .toList()
             );
         }

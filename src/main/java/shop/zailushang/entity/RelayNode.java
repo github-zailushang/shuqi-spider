@@ -1,7 +1,7 @@
 package shop.zailushang.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import shop.zailushang.util.JsonUtils;
+import shop.zailushang.util.CheckedExceptionFucker;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -28,14 +28,14 @@ public record RelayNode(JsonNode chapterListNode, JsonNode bookNameNode) {
                         .stream())
                 .map(jsonNode -> {
                     // 构建目标 ObjectNode 对象
-                    var targetObjectNode = JsonUtils.createObjectNode();
+                    var targetObjectNode = CheckedExceptionFucker.createObjectNode();
                     // 从根节点添加 bookName 属性
                     targetObjectNode.putIfAbsent("bookName", bookNameNode);
                     // 添加其余属性
                     recognizedProperties.forEach(property -> targetObjectNode.putIfAbsent(property, jsonNode.get(property)));
                     return targetObjectNode;
                 })
-                .map(chapterJsonNode -> JsonUtils.treeToValue(chapterJsonNode, Chapter.Chapter4Read.class))
+                .map(chapterJsonNode -> CheckedExceptionFucker.treeToValue(chapterJsonNode, Chapter.Chapter4Read.class))
                 .toList();
     }
 }
