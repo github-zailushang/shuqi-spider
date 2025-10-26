@@ -86,7 +86,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     /*
      * 并行任务（模板方法：算法骨架已然固定）
      */
-    static <T, R> Task<List<T>, List<R>> parallelTask(Function<List<T>, List<T>> before, Task<? super T, R> task, Function<List<R>, List<R>> andThen) {
+    static <T, R> Task<List<T>, List<R>> parallelTask(Function<List<T>, List<T>> before, Task<? super T, R> task, Function<List<R>, List<R>> after) {
         Assert.isTrue(task, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
         final var atomicReference = new AtomicReference<CompletableFuture[]>();
         return items -> CompletableFuture.completedFuture(items)
@@ -94,7 +94,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
                 .thenApplyAsync(list -> atomicReference.updateAndGet(_ -> list.stream().map(task).toArray(CompletableFuture[]::new)), taskExecutor()) // 并行执行任务
                 .thenComposeAsync(CompletableFuture::allOf, taskExecutor()) // 等待所有任务完成
                 .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(future -> (R) future.join()).toList(), taskExecutor())
-                .thenApplyAsync(andThen, taskExecutor()); // 返回值后置处理
+                .thenApplyAsync(after, taskExecutor()); // 返回值后置处理
     }
 
     /*
