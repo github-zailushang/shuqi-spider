@@ -79,8 +79,8 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     /**
      * 方法重载自 {@link Task#parallelTask(Function, Task, Function)}
      */
-    static <T, R> Task<List<T>, List<R>> parallelTask(Task<? super T, R> task, Function<List<R>, List<R>> andThen) {
-        return parallelTask(Function.identity(), task, andThen);
+    static <T, R> Task<List<T>, List<R>> parallelTask(Task<? super T, R> task, Function<List<R>, List<R>> after) {
+        return parallelTask(Function.identity(), task, after);
     }
 
     /*

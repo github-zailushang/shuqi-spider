@@ -40,9 +40,9 @@ public interface Flow<T, R> {
     }
 
     // 并行流程
-    static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> andThen) {
+    static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> after) {
         Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
-        return () -> Task.parallelTask(before, flow.head(), andThen);
+        return () -> Task.parallelTask(before, flow.head(), after);
     }
 
     /**
