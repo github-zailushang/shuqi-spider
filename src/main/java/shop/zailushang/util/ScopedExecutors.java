@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 /**
  * CompletableFuture 专用虚拟线程池工具类，为每一个新开启的虚拟线程设置 ScopedValue 值
  */
+@SuppressWarnings("unused")
 public class ScopedExecutors {
     // IO密集型任务线程池：使用虚拟线程池 （静态代理对象）
     public static final ExecutorService DELEGATE = Executors.newVirtualThreadPerTaskExecutor();
@@ -17,12 +18,10 @@ public class ScopedExecutors {
         return newScopedExecutor(KEY, KEY.get());
     }
 
-    @SuppressWarnings("unused")
     public static Executor newScopedExecutor(String value) {
         return newScopedExecutor(KEY, value);
     }
 
-    @SuppressWarnings("unused")
     public static Executor newScopedExecutor(Supplier<String> value) {
         return newScopedExecutor(KEY, value);
     }

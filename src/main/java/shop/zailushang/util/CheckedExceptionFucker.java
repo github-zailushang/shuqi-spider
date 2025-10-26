@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-// F**K checked Exception in read Json
+// F**K checked Exception
 public class CheckedExceptionFucker {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

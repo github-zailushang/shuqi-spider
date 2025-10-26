@@ -89,12 +89,11 @@ public interface Flow<T, R> {
                             .sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)) // 排序
                             .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 测试模式下仅下载前 20 章
                             .toList(),
-                    Flows.contentFlow(),
+                    Flows.contentFlow(), // 单条章节处理流程
                     chapter4Merges -> chapter4Merges.stream()
-                            .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId))
-                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong))
-                            .toList()
-            );
+                            .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 重排序
+                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong)) // 设置 skip
+                            .toList());
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]
