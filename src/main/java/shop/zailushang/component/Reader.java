@@ -5,6 +5,7 @@ import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.Tao;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.util.RateLimitUnits;
+import shop.zailushang.util.ScopedExecutors;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -32,7 +33,7 @@ public interface Reader<T, R> extends Task<T, R> {
                 //.header("cookie", "") // 此处添加 VIP账号权限
                 .build();
 
-        return FlowEngine.HTTP_CLIENT_SUPPLIER.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        return FlowEngine.HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApplyAsync(HttpResponse::body, taskExecutor());
     }
 
@@ -52,7 +53,7 @@ public interface Reader<T, R> extends Task<T, R> {
         public static Reader<Tao, String> bidReader() {
             // 获取BID的请求地址
             final var bidUriFormatter = "https://www.shuqi.com/search?keyword=%s&page=1";
-            return _ -> CompletableFuture.completedFuture(FlowEngine.BOOK_NAME.get())
+            return _ -> CompletableFuture.completedFuture(ScopedExecutors.KEY.get())
                     .thenApplyAsync(bidUriFormatter::formatted, taskExecutor())
                     .whenCompleteAsync((bidUri, _) -> log.info("{} - 执行获取bid操作 url => {}", Reader.name(), bidUri), taskExecutor())
                     .thenComposeAsync(Reader::read0, taskExecutor());

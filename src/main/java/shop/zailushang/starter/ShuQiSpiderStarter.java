@@ -16,11 +16,6 @@ void main() {
     // 禁用 Graal VM 警告日志
     System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
     try (var engine = FlowEngine.getDefaultFlowEngine()) {
-        // 单独下载一本
-        //engine.start("武动乾坤");
-        // 多本一起下
-        List.of("斗破苍穹", "武动乾坤", "大主宰", "元尊")
-                .parallelStream()
-                .forEach(engine::start);
+        engine.start("斗破苍穹", "武动乾坤", "大主宰", "元尊");
     }
 }

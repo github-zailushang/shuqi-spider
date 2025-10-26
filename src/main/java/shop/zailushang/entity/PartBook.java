@@ -5,9 +5,10 @@ import shop.zailushang.component.Task;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.util.BookCache;
 import shop.zailushang.util.IOForkJoinTask;
+import shop.zailushang.util.ScopedExecutors;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, Integer endIndex, Integer capacity,
-                       ExecutorService executor) implements IOForkJoinTask<PartBook> {
+                       Executor executor) implements IOForkJoinTask<PartBook> {
 
     // 从 sources 构造
     public static PartBook of(List<Chapter.Chapter4Merge> sources) {
@@ -39,7 +40,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
         log.info("{} - 准备合并 [{} ~ {}]", name, startIndex, endIndex);
 
         // 书籍名称
-        var bookName = FlowEngine.BOOK_NAME.get();
+        var bookName = ScopedExecutors.KEY.get();
         // 获取目标文件通道
         var targetFileChannel = BookCache.getFileChannel(bookName);
         var atoLong = new AtomicLong(0);

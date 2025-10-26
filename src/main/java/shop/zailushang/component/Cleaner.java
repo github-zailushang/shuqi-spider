@@ -7,9 +7,9 @@ import shop.zailushang.entity.Tao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static shop.zailushang.component.Task.parallelTask;
 import static shop.zailushang.component.Task.taskExecutor;
 
 /**
@@ -26,10 +26,10 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Tao> {
     CompletableFuture<Tao> clean(Chapter.Chapter4Clean chapter4Clean) throws Exception;
 
     // 删除文件
-    static Path clean(Path path) {
+    static CompletableFuture<Path> clean0(Path path) {
         try {
             Files.deleteIfExists(path);
-            return path;
+            return CompletableFuture.completedFuture(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -48,16 +48,15 @@ public interface Cleaner extends Task<Chapter.Chapter4Clean, Tao> {
         }
 
         public static Cleaner fileCleaner() {
-            return chapter4Clean -> CompletableFuture.completedFuture(chapter4Clean)
-                    .whenCompleteAsync((_, _) -> log.info("{} - 执行文件删除操作", Cleaner.name()), taskExecutor())
-                    .thenApplyAsync(Chapter.Chapter4Clean::paths, taskExecutor())
-                    .thenApplyAsync(List::parallelStream, taskExecutor())
-                    .thenApplyAsync(pathStream -> pathStream.filter(Chapter.Chapter4Clean::needDelete), taskExecutor())// 过滤 是否删除
-                    .thenApplyAsync(pathStream -> pathStream.map(CompletableFuture::completedFuture), taskExecutor())// 每条路径创建异步任务删除
-                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.thenApplyAsync(Cleaner::clean, taskExecutor())), taskExecutor())// 执行删除任务
-                    .thenApplyAsync(completedFutureStream -> completedFutureStream.map(pathCompletedFuture -> pathCompletedFuture.whenCompleteAsync((path, _) -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path), taskExecutor())), taskExecutor())// log
-                    .whenCompleteAsync((completedFutureStream, _) -> completedFutureStream.forEach(CompletableFuture::join), taskExecutor())// 等待所有任务完成
-                    .thenApplyAsync(_ -> Tao.TAO, taskExecutor());// 回归本道
+            return chapter4Clean -> {
+                log.info("{} - 执行文件删除操作", Cleaner.name());
+                return parallelTask(
+                        paths -> paths.stream().filter(Chapter.Chapter4Clean::needDelete).toList(),
+                        Cleaner::clean0,
+                        paths -> paths.stream().peek(path -> log.info("{} - 删除文件成功：{}", Cleaner.name(), path)).toList())
+                        .apply(chapter4Clean.paths())
+                        .thenApplyAsync(_ -> Tao.TAO, taskExecutor()); // 大道至简，万法归宗
+            };
         }
     }
 }

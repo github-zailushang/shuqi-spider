@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 /**
  * 用于IO密集型任务分治的工具类
@@ -19,7 +19,7 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
     }
 
     // 线程池
-    ExecutorService executor();
+    Executor executor();
 
     // 起始索引
     Integer startIndex();

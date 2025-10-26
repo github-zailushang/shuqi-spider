@@ -9,9 +9,7 @@ import shop.zailushang.entity.Chapter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
-
-import static shop.zailushang.component.Task.taskExecutor;
+import java.util.function.Function;
 
 /**
  * 抽象流程：组装多个 Task，形成一条任务链
@@ -31,14 +29,14 @@ public interface Flow<T, R> {
      */
     @SuppressWarnings("unused")
     static <T> Flow<T, T> identity() {
-        return Task::<T>identity;
+        return Task::identity;
     }
 
     /**
      * 空流程
      */
     static <T, R> Flow<T, R> empty() {
-        return Task::<T, R>empty;
+        return Task::empty;
     }
 
     /**
@@ -86,17 +84,17 @@ public interface Flow<T, R> {
         // 完整 下载章节内容 的流程组装[针对所有章节内容]
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
             final var atoLong = new AtomicLong(0L);
-            return () ->
-                    pendingDownloads -> CompletableFuture.completedFuture(pendingDownloads)
-                            .thenApplyAsync(List::parallelStream, taskExecutor())// 开启并行流加速提交
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)), taskExecutor())// 并行流不影响排序语义
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE), taskExecutor())// 测试模式下仅下载前 20 章
-                            .thenApplyAsync(chapter4ReadStream -> chapter4ReadStream.map(Flows.contentFlow()::start), taskExecutor())// 并发式启动下载任务
-                            .thenApplyAsync(Stream::toList, taskExecutor())// 提前收集源
-                            .thenApplyAsync(List::stream, taskExecutor())
-                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)), taskExecutor())// 重新排序
-                            .thenApplyAsync(chapter4MergeStream -> chapter4MergeStream.map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong)), taskExecutor())// 设置 skip 属性
-                            .thenApplyAsync(Stream::toList, taskExecutor());
+            return parallelFlow(
+                    chapter4Reads -> chapter4Reads.stream()
+                            .sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)) // 排序
+                            .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 测试模式下仅下载前 20 章
+                            .toList(),
+                    Flows.contentFlow(),
+                    chapter4Merges -> chapter4Merges.stream()
+                            .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId))
+                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atoLong))
+                            .toList()
+            );
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]
@@ -113,6 +111,12 @@ public interface Flow<T, R> {
         public static Flow<List<Chapter.Chapter4Merge>, Tao> mergeFlow() {
             return FlowEngine.IS_DEBUG ? Flow.empty() :
                     () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
+        }
+
+        // 并行流程
+        static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> andThen) {
+            Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
+            return () -> Task.parallelTask(before, flow.head(), andThen);
         }
     }
 }
