@@ -48,14 +48,14 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         return t -> execute(t).thenComposeAsync(next, taskExecutor());
     }
 
-    /**
+    /*
      * 一致性任务
      */
     static <T> Task<T, T> identity() {
         return CompletableFuture::completedFuture;
     }
 
-    /**
+    /*
      * 空任务
      */
     static <T, R> Task<T, R> empty() {
@@ -83,8 +83,8 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
         return parallelTask(Function.identity(), task, andThen);
     }
 
-    /**
-     * 并行任务
+    /*
+     * 并行任务（模板方法：算法骨架已然固定）
      */
     static <T, R> Task<List<T>, List<R>> parallelTask(Function<List<T>, List<T>> before, Task<? super T, R> task, Function<List<R>, List<R>> andThen) {
         Assert.isTrue(task, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
@@ -108,7 +108,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
                 .whenCompleteAsync(RateLimitUnits::release, taskExecutor()); // 任务结束时释放信号量
     }
 
-    /**
+    /*
      * 任务专用线程池（使用包装的虚拟线程池）
      */
     static Executor taskExecutor() {

@@ -14,6 +14,7 @@ import java.util.function.Function;
 /**
  * 抽象流程：组装多个 Task，形成一条任务链
  */
+@SuppressWarnings("unused")
 public interface Flow<T, R> {
 
     // 任务头结点
@@ -27,7 +28,6 @@ public interface Flow<T, R> {
     /**
      * 一致性流程
      */
-    @SuppressWarnings("unused")
     static <T> Flow<T, T> identity() {
         return Task::identity;
     }
@@ -39,10 +39,15 @@ public interface Flow<T, R> {
         return Task::empty;
     }
 
+    // 并行流程
+    static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> andThen) {
+        Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
+        return () -> Task.parallelTask(before, flow.head(), andThen);
+    }
+
     /**
      * 流程组装：同步调用链
      */
-    @SuppressWarnings("unused")
     default <V> Flow<T, V> then(Flow<? super R, V> next) {
         Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
         return () -> head().then(next.head());
@@ -110,12 +115,6 @@ public interface Flow<T, R> {
         public static Flow<List<Chapter.Chapter4Merge>, Tao> mergeFlow() {
             return FlowEngine.IS_DEBUG ? Flow.empty() :
                     () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
-        }
-
-        // 并行流程
-        static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> andThen) {
-            Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
-            return () -> Task.parallelTask(before, flow.head(), andThen);
         }
     }
 }
