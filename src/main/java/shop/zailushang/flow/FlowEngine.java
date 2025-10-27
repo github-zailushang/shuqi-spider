@@ -2,13 +2,14 @@ package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.util.Assert;
-import shop.zailushang.util.ScopedExecutors;
+import shop.zailushang.util.ScopedExecutor;
 
 import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Optional;
 
 import static shop.zailushang.entity.Tao.TAO;
+import static shop.zailushang.util.ScopedExecutor.*;
 
 @Slf4j
 public class FlowEngine implements AutoCloseable {
@@ -22,13 +23,13 @@ public class FlowEngine implements AutoCloseable {
     public static final boolean NEED_DELETE = true;
     // 默认文件夹路径 e.g. D:/斗破苍穹
     public static final String FOLDER_FORMATTER = "D:/%s";
+
+
     // 每个线程默认处理的章节数量
     public static final Integer DEFAULT_CAPACITY = 5;
     // http客户端（使用原生虚拟线程池）
-    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().executor(ScopedExecutors.DELEGATE).build();
-
-    // 单例模式：静态实例对象
-    // 使用 volatile 修饰，防止指令重排导致的 NPE 问题
+    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().executor(ScopedExecutor.delegate()).build();
+    // 单例模式：静态实例对象，使用 volatile 修饰，防止指令重排导致的 NPE 问题
     private static volatile FlowEngine DEFAULT_FLOW_ENGINE;
 
     private FlowEngine() {
@@ -98,7 +99,7 @@ public class FlowEngine implements AutoCloseable {
     public void end() {
         log.info("\u001B[92m敕令：「香云奉送，祖师归坛；神兵返驾，各归玄庭！弟子稽首，再沐恩光！散坛！」\u001B[0m");
         HTTP_CLIENT.close();
-        ScopedExecutors.DELEGATE.shutdown();
+        shutdown();
     }
 
     @Override

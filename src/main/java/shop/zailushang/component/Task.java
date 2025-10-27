@@ -2,12 +2,11 @@ package shop.zailushang.component;
 
 import shop.zailushang.util.Assert;
 import shop.zailushang.util.RateLimitUnits;
-import shop.zailushang.util.ScopedExecutors;
+import shop.zailushang.util.ScopedExecutor;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -111,7 +110,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     /*
      * 任务专用线程池（使用包装的虚拟线程池）
      */
-    static Executor taskExecutor() {
-        return ScopedExecutors.newScopedExecutor();
+    static ScopedExecutor taskExecutor() {
+        return ScopedExecutor.ScopedExecutors.newScopedExecutor();
     }
 }

@@ -5,7 +5,7 @@ import shop.zailushang.component.Task;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.util.BookCache;
 import shop.zailushang.util.IOForkJoinTask;
-import shop.zailushang.util.ScopedExecutors;
+import shop.zailushang.util.ScopedExecutor;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -40,7 +40,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
         log.info("{} - 准备合并 [{} ~ {}]", name, startIndex, endIndex);
 
         // 书籍名称
-        var bookName = ScopedExecutors.KEY.get();
+        var bookName = ScopedExecutor.ScopedExecutors.KEY.get();
         // 获取目标文件通道
         var targetFileChannel = BookCache.getFileChannel(bookName);
         var atoLong = new AtomicLong(0);
