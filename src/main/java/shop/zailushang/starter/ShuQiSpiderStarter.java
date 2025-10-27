@@ -13,9 +13,8 @@ import shop.zailushang.flow.FlowEngine;
  * 每个线程负责处理的资源数量 {@link FlowEngine#DEFAULT_CAPACITY } 默认合并 5 章
  */
 void main() {
-    // 禁用 Graal VM 警告日志
-    System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
     try (var engine = FlowEngine.getDefaultFlowEngine()) {
-        engine.start("斗破苍穹", "武动乾坤", "大主宰", "元尊");
+//        engine.start("斗破苍穹", "武动乾坤", "大主宰", "元尊");
+        engine.start("剑来", "掌上齐眉");
     }
 }

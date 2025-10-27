@@ -15,6 +15,7 @@ public class ScopedExecutors {
     public static final ScopedValue<String> KEY = ScopedValue.newInstance();
 
     public static Executor newScopedExecutor() {
+        // 在提交任务的线程中获取值
         return newScopedExecutor(KEY, KEY.get());
     }
 
@@ -37,7 +38,6 @@ public class ScopedExecutors {
     }
 
     // 动态代理 + 静态代理
-    @SuppressWarnings("unused")
     public static <T> Executor proxy(ScopedValue<T> key) {
         return (Executor) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{Executor.class}, (_, method, args) -> {
             if ("execute".equals(method.getName()) && args.length > 0 && args[0] instanceof Runnable r) {

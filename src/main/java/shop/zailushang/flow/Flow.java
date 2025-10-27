@@ -20,32 +20,36 @@ public interface Flow<T, R> {
     // 任务头结点
     Task<T, R> head();
 
-    // 启动此任务
+    /*
+     * 启动此任务
+     */
     default R start(T t) {
         return head().apply(t).join();
     }
 
-    /**
+    /*
      * 一致性流程
      */
     static <T> Flow<T, T> identity() {
         return Task::identity;
     }
 
-    /**
+    /*
      * 空流程
      */
     static <T, R> Flow<T, R> empty() {
         return Task::empty;
     }
 
-    // 并行流程
+    /*
+     * 并行流程
+     */
     static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> after) {
         Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
         return () -> Task.parallelTask(before, flow.head(), after);
     }
 
-    /**
+    /*
      * 流程组装：同步调用链
      */
     default <V> Flow<T, V> then(Flow<? super R, V> next) {
@@ -53,7 +57,7 @@ public interface Flow<T, R> {
         return () -> head().then(next.head());
     }
 
-    /**
+    /*
      * 流程组装：异步调用链
      */
     default <V> Flow<T, V> thenAsync(Flow<? super R, V> next) {
@@ -113,8 +117,7 @@ public interface Flow<T, R> {
 
         // 完整 合并文件 的流程组装
         public static Flow<List<Chapter.Chapter4Merge>, Tao> mergeFlow() {
-            return FlowEngine.IS_DEBUG ? Flow.empty() :
-                    () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
+            return FlowEngine.IS_DEBUG ? Flow.empty() : () -> Merger.Mergers.fileMerger().thenAsync(Cleaner.Cleaners.fileCleaner());
         }
     }
 }

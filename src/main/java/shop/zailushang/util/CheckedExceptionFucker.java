@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
 // F**K checked Exception
 public class CheckedExceptionFucker {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -42,10 +41,9 @@ public class CheckedExceptionFucker {
         }
     }
 
-    public static Path deleteIfExists(Path path) {
+    public static void deleteIfExists(Path path) {
         try {
             Files.deleteIfExists(path);
-            return path;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

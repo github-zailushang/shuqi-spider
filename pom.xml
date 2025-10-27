@@ -17,14 +17,15 @@
     <dependencies>
         <!-- js引擎：执行js解密 -->
         <dependency>
-            <groupId>org.graalvm.js</groupId>
-            <artifactId>js</artifactId>
-            <version>22.3.0</version>
+            <groupId>org.graalvm.polyglot</groupId>
+            <artifactId>polyglot</artifactId>
+            <version>25.0.1</version>
         </dependency>
         <dependency>
-            <groupId>org.graalvm.js</groupId>
-            <artifactId>js-scriptengine</artifactId>
-            <version>22.3.0</version>
+            <groupId>org.graalvm.polyglot</groupId>
+            <artifactId>js</artifactId>
+            <version>25.0.1</version>
+            <type>pom</type>
         </dependency>
 
         <!-- json解析 -->

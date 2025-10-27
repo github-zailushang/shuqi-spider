@@ -4,9 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.flow.FlowEngine;
 import shop.zailushang.util.Assert;
-import shop.zailushang.util.ScriptEnginePool;
+import shop.zailushang.util.ContextPool;
 
-import javax.script.Invocable;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,14 +27,14 @@ public interface Decoder extends Task<Chapter.Chapter4Decode, Chapter.Chapter4Fo
     // js 解密
     static String withJsDecode(String ciphertext) {
         // 调用 js引擎池 解密章节内容
-        var scriptEngine = ScriptEnginePool.acquire();
-        try {
-            return (String) ((Invocable) scriptEngine).invokeFunction("_decode", ciphertext);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            ScriptEnginePool.release(scriptEngine);
-        }
+        var context = ContextPool.acquire();
+        var plaintext = context.getBindings("js")
+                .getMember("_decode")
+                .execute(ciphertext)
+                .asString();
+        // 释放至 js引擎池
+        ContextPool.release(context);
+        return plaintext;
     }
 
     // java 本地实现解密（随js脚本更迭）

@@ -1,9 +1,9 @@
 package shop.zailushang.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.graalvm.polyglot.Context;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
@@ -13,63 +13,62 @@ import java.util.stream.IntStream;
  * JS 引擎池：缓存JS引擎对象
  */
 @Slf4j
-public class ScriptEnginePool {
-    // JS脚本
+public class ContextPool {
+    // JS 脚本
     private static final String JS_SCRIPT;
     // 阻塞队列
-    private static final BlockingDeque<ScriptEngine> BLOCKING_DEQUE;
-    // 脚本引擎管理器
-    private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();
-    // 组件名称
+    private static final BlockingDeque<Context> BLOCKING_DEQUE;
+    // 組件名稱
     private static final String NAME = "「三清铃」";
 
     static {
-        // 缓存 200 个JS引擎对象
+        // 禁用部分警告
+        System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
         log.info("{} - 执行初始化js引擎池", NAME);
         try (var resourceStream = ClassLoader.getSystemClassLoader().getResourceAsStream("decode.js")) {
             Assert.isTrue(resourceStream, Assert::isNotNull, () -> new NullPointerException("To be, or not to be, that is the question. — William Shakespeare, Hamlet"));
-            JS_SCRIPT = new String(resourceStream.readAllBytes());
-            BLOCKING_DEQUE = IntStream.rangeClosed(1, 200)
-                    .mapToObj(_ -> createScriptEngine())
+            JS_SCRIPT = new String(resourceStream.readAllBytes(), StandardCharsets.UTF_8);
+            // 缓存300个 Context
+            BLOCKING_DEQUE = IntStream.rangeClosed(1, 300)
+                    .mapToObj(_ -> createContext())
                     .collect(Collectors.toCollection(LinkedBlockingDeque::new));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    /**
-     * 生成JS引擎
+    /*
+     * 创建 Context
      */
-    private static ScriptEngine createScriptEngine() {
+    private static Context createContext() {
         try {
-            var scriptEngine = SCRIPT_ENGINE_MANAGER.getEngineByName("JavaScript");
-            scriptEngine.eval(JS_SCRIPT);
-            return scriptEngine;
+            var context = Context.newBuilder("js")
+                    .allowAllAccess(true)
+                    .build();
+            context.eval("js", JS_SCRIPT);
+            return context;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * 借用一个JS引擎对象
+    /*
+     * 获取 Context
      */
-    public static ScriptEngine acquire() {
+    public static Context acquire() {
         try {
-            log.info("{} - 使用js引擎执行解密操作", NAME);
             return BLOCKING_DEQUE.take();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * 归还一个JS引擎对象
+    /*
+     * 释放 Context
      */
-    public static void release(ScriptEngine scriptEngine) {
+    public static void release(Context context) {
         try {
-            log.info("{} - 归还js引擎至引擎池", NAME);
-            BLOCKING_DEQUE.put(scriptEngine);
+            BLOCKING_DEQUE.put(context);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
