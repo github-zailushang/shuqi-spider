@@ -37,9 +37,6 @@ public class Chapter {
 
     // 文件合并时
     public record Chapter4Merge(String bookName, Integer orderId, Path filePath, FileChannel fileChannel, Long skip) {
-        // 空对象
-        public static final Chapter4Merge EMPTY = new Chapter4Merge("", -1, null, null);
-
         public Chapter4Merge(Chapter4Merge chapter4Merge, Long skip) {
             this(chapter4Merge.bookName, chapter4Merge.orderId, chapter4Merge.filePath, chapter4Merge.fileChannel, skip);
         }
@@ -49,8 +46,6 @@ public class Chapter {
         }
 
         public static Chapter4Merge of(Chapter4Merge chapter4Merge, AtomicLong atomicLong) {
-            // 空对象直接返回，不想改流程，只能特殊处理空对象
-            if (chapter4Merge == EMPTY) return chapter4Merge;
             try {
                 // 设置每章的跳过字节数 skip : atoLong.getAndAdd(size)
                 var size = chapter4Merge.fileChannel().size();

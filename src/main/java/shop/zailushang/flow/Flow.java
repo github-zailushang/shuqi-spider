@@ -28,6 +28,22 @@ public interface Flow<T, R> {
     }
 
     /*
+     * 流程组装：同步调用链
+     */
+    default <V> Flow<T, V> then(Flow<? super R, V> next) {
+        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
+        return () -> head().then(next.head());
+    }
+
+    /*
+     * 流程组装：异步调用链
+     */
+    default <V> Flow<T, V> thenAsync(Flow<? super R, V> next) {
+        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
+        return () -> head().thenAsync(next.head());
+    }
+
+    /*
      * 一致性流程
      */
     static <T> Flow<T, T> identity() {
@@ -47,22 +63,6 @@ public interface Flow<T, R> {
     static <T, R> Flow<List<T>, List<R>> parallelFlow(Function<List<T>, List<T>> before, Flow<? super T, R> flow, Function<List<R>, List<R>> after) {
         Assert.isTrue(flow, Assert::isNotNull, () -> new NullPointerException("Do not, for one repulse, forgo the purpose that you resolved to effort. — William Shakespeare"));
         return () -> Task.parallelTask(before, flow.head(), after);
-    }
-
-    /*
-     * 流程组装：同步调用链
-     */
-    default <V> Flow<T, V> then(Flow<? super R, V> next) {
-        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
-        return () -> head().then(next.head());
-    }
-
-    /*
-     * 流程组装：异步调用链
-     */
-    default <V> Flow<T, V> thenAsync(Flow<? super R, V> next) {
-        Assert.isTrue(next, Assert::isNotNull, () -> new NullPointerException("If I looked compared to others far, is because I stand on giant’s shoulder. — Newton"));
-        return () -> head().thenAsync(next.head());
     }
 
     /**
@@ -99,7 +99,7 @@ public interface Flow<T, R> {
                             .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 测试模式下仅下载前 20 章
                             .toList(),
                     Flows.contentFlow(), // 单条章节处理流程
-                    chapter4Merges -> chapter4Merges.stream()
+                    FlowEngine.IS_DEBUG ? Function.identity() : chapter4Merges -> chapter4Merges.stream()
                             .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 重排序
                             .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong)) // 设置 skip
                             .toList());

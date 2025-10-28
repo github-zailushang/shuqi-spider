@@ -18,6 +18,8 @@ import java.util.function.Function;
 @SuppressWarnings("all")
 public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
 
+    CompletableFuture<R> execute(T param) throws Exception;
+
     @Override
     default CompletableFuture<R> apply(T param) {
         try {
@@ -26,8 +28,6 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
             throw new RuntimeException(e);
         }
     }
-
-    CompletableFuture<R> execute(T param) throws Exception;
 
     /*
      * 高阶函数：利用函数式编程的函数组合特性，来组装两个任务
@@ -86,13 +86,15 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
      * 并行任务（模板方法：算法骨架已然固定）
      */
     static <T, R> Task<List<T>, List<R>> parallelTask(Function<List<T>, List<T>> before, Task<? super T, R> task, Function<List<R>, List<R>> after) {
+        Assert.isTrue(before, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
         Assert.isTrue(task, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
+        Assert.isTrue(after, Assert::isNotNull, () -> new NullPointerException("The future depends on what you do today. — Mahatma Gandhi"));
         final var atomicReference = new AtomicReference<CompletableFuture[]>();
         return items -> CompletableFuture.completedFuture(items)
                 .thenApplyAsync(before, taskExecutor()) // 参数前置处理
                 .thenApplyAsync(list -> atomicReference.updateAndGet(_ -> list.stream().map(task).toArray(CompletableFuture[]::new)), taskExecutor()) // 并行执行任务
                 .thenComposeAsync(CompletableFuture::allOf, taskExecutor()) // 等待所有任务完成
-                .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(future -> (R) future.join()).toList(), taskExecutor())
+                .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(future -> (R) future.join()).toList(), taskExecutor()) // 汇总任务结果
                 .thenApplyAsync(after, taskExecutor()); // 返回值后置处理
     }
 
@@ -108,7 +110,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     }
 
     /*
-     * 任务专用线程池（使用包装的虚拟线程池）
+     * 任务专用线程池（使用经过包装的虚拟线程池，从当前上下文中获取 ScopedValue 并绑定至新开启的虚拟线程）
      */
     static ScopedExecutor taskExecutor() {
         return ScopedExecutor.ScopedExecutors.newScopedExecutor();
