@@ -10,8 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 // 章节内容
 public class Chapter {
     // 下载时
-    public record Chapter4Read(String bookName, String chapterId, String chapterName, String contUrlSuffix,
-                               Integer chapterOrdid) {
+    public record Chapter4Read(String bookName, String chapterName, Integer chapterOrdid, String contUrlSuffix) {
     }
 
     // 选择时
@@ -36,9 +35,9 @@ public class Chapter {
     }
 
     // 文件合并时
-    public record Chapter4Merge(String bookName, Integer orderId, Path filePath, FileChannel fileChannel, Long skip) {
+    public record Chapter4Merge(String bookName, Integer chapterOrdid, Path filePath, FileChannel fileChannel, Long skip) {
         public Chapter4Merge(Chapter4Merge chapter4Merge, Long skip) {
-            this(chapter4Merge.bookName, chapter4Merge.orderId, chapter4Merge.filePath, chapter4Merge.fileChannel, skip);
+            this(chapter4Merge.bookName, chapter4Merge.chapterOrdid, chapter4Merge.filePath, chapter4Merge.fileChannel, skip);
         }
 
         public Chapter4Merge(String bookName, Integer orderId, Path filePath, FileChannel fileChannel) {

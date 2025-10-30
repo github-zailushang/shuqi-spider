@@ -60,10 +60,9 @@ public interface IOForkJoinTask<T extends IOForkJoinTask<T>> {
         // 返回值用以计算任务成功数量
         log.info("{} - 等待子任务返回 ...", IOForkJoinTask.name());
         // 合并子任务返回结果
-        var result = Arrays.stream(futures)
-                .map(CompletableFuture::join)
-                .reduce(Result.ZERO, Result::reduce);
-
+        var result = CompletableFuture.allOf(futures) // 等待所有子任务完成
+                .thenApplyAsync(_ -> Arrays.stream(futures).map(CompletableFuture::join).reduce(Result.ZERO, Result::reduce), executor()) // 汇总返回子任务结果
+                .join();
         log.info("{} - 返回结果:{}", IOForkJoinTask.name(), result);
         return result;
     }

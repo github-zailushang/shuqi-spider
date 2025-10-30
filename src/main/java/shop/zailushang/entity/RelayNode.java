@@ -3,6 +3,7 @@ package shop.zailushang.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import shop.zailushang.util.CheckedExceptionFucker;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -17,7 +18,7 @@ public record RelayNode(JsonNode chapterListNode, JsonNode bookNameNode) {
 
     public List<Chapter.Chapter4Read> map2Chapter4ReadList() {
         // 需要的属性集合 bookName 在外层，已单独存放
-        final var recognizedProperties = List.of("chapterId", "contUrlSuffix", "chapterOrdid", "chapterName");
+        final var recognizedProperties = List.of("chapterName", "chapterOrdid", "contUrlSuffix");
         // {chapterList:[{volumeList:[{chapterId,chapterName,contUrlSuffix}]}]}
         return IntStream.range(0, chapterListNode.size())
                 .mapToObj(chapterListNode::get)
@@ -36,6 +37,7 @@ public record RelayNode(JsonNode chapterListNode, JsonNode bookNameNode) {
                     return targetObjectNode;
                 })
                 .map(chapterJsonNode -> CheckedExceptionFucker.treeToValue(chapterJsonNode, Chapter.Chapter4Read.class))
+                .sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)) // 返回前排序
                 .toList();
     }
 }

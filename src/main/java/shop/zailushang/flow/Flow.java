@@ -7,7 +7,6 @@ import shop.zailushang.util.Assert;
 import shop.zailushang.entity.Chapter;
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
@@ -96,15 +95,12 @@ public interface Flow<T, R> {
         public static Flow<List<Chapter.Chapter4Read>, List<Chapter.Chapter4Merge>> contentListFlow() {
             final var atomicLong = new AtomicLong(0L);
             return parallelFlow(
-                    chapter4Reads -> chapter4Reads.stream()
-                            .sorted(Comparator.comparing(Chapter.Chapter4Read::chapterOrdid)) // 排序
-                            .limit(FlowEngine.IS_TEST ? 20 : Long.MAX_VALUE) // 测试模式下仅下载前 20 章
-                            .toList(),
-                    Flows.contentFlow(), // 单条章节处理流程
-                    FlowEngine.IS_DEBUG ? Function.identity() : chapter4Merges -> chapter4Merges.stream()
-                            .sorted(Comparator.comparing(Chapter.Chapter4Merge::orderId)) // 重排序
-                            .map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong)) // 设置 skip
-                            .toList());
+                    // 测试模式下仅下载前 20 章
+                    FlowEngine.IS_TEST ? chapter4Reads -> chapter4Reads.stream().limit(20).toList() : Function.identity(),
+                    // 单条章节处理流程
+                    Flows.contentFlow(),
+                    // DEGUB模式下跳过设置 skip
+                    FlowEngine.IS_DEBUG ? Function.identity() : chapter4Merges -> chapter4Merges.stream().map(chapter4Merge -> Chapter.Chapter4Merge.of(chapter4Merge, atomicLong)).toList());
         }
 
         // 部分 下载章节内容 的流程组装[针对一条章节内容]

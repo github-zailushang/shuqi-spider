@@ -26,7 +26,7 @@ public record PartBook(List<Chapter.Chapter4Merge> sources, Integer startIndex, 
 
     // 从 sources 构造
     public static PartBook of(List<Chapter.Chapter4Merge> sources) {
-        var orderIds = sources.stream().map(Chapter.Chapter4Merge::orderId).toList();
+        var orderIds = sources.stream().map(Chapter.Chapter4Merge::chapterOrdid).toList();
         return new PartBook(sources, orderIds.getFirst(), orderIds.getLast(), FlowEngine.DEFAULT_CAPACITY, Task.taskExecutor());
     }
 
