@@ -5,7 +5,7 @@ import java.util.concurrent.Semaphore;
 // f**k checked exception in lambda
 public class RateLimitUnits {
     // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
-    public static final long TIMEOUT = 2L;
+    public static final long DELAY = 2L;
     // 在下载章节内容时，最大允许并发数
     public static final Integer MAX_ALLOWED = 3;
     // 信号量

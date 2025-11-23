@@ -77,7 +77,7 @@ public interface Reader<T, R> extends Task<T, R> {
                     .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, taskExecutor())
                     .thenApplyAsync(contentUriFormatter::formatted, taskExecutor())
                     .whenCompleteAsync((contentUri, _) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri), taskExecutor())
-                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.TIMEOUT), taskExecutor())
+                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.DELAY), taskExecutor())
                     .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), taskExecutor());
         }
     }
