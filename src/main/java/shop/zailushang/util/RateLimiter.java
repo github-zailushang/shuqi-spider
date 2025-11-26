@@ -2,8 +2,7 @@ package shop.zailushang.util;
 
 import java.util.concurrent.Semaphore;
 
-// f**k checked exception in lambda
-public class RateLimitUnits {
+public class RateLimiter {
     // 用于控制下载章节内容时的休眠时间 : 别改！别改！别改！后果自负！！！
     public static final long DELAY = 2L;
     // 在下载章节内容时，最大允许并发数

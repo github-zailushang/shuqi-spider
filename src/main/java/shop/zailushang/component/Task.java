@@ -1,7 +1,7 @@
 package shop.zailushang.component;
 
 import shop.zailushang.util.Assert;
-import shop.zailushang.util.RateLimitUnits;
+import shop.zailushang.util.RateLimiter;
 import shop.zailushang.util.ScopedExecutor;
 
 import java.util.Arrays;
@@ -104,9 +104,9 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
     static <T, R> Task<T, ? extends R> withRateLimit(Task<? super T, R> innerTask, long delay) {
         Assert.isTrue(innerTask, Assert::isNotNull, () -> new NullPointerException("The only way to do great work is to love what you do. — Steve Jobs"));
         return t -> CompletableFuture.completedFuture(t)
-                .thenApplyAsync(RateLimitUnits::acquire, taskExecutor()) // 执行任务前获取信号量
+                .thenApplyAsync(RateLimiter::acquire, taskExecutor()) // 执行任务前获取信号量
                 .thenComposeAsync(innerTask, CompletableFuture.delayedExecutor(delay, TimeUnit.SECONDS, taskExecutor()))// 使用包装后带延时的线程池
-                .whenCompleteAsync(RateLimitUnits::release, taskExecutor()); // 任务结束时释放信号量
+                .whenCompleteAsync(RateLimiter::release, taskExecutor()); // 任务结束时释放信号量
     }
 
     /*

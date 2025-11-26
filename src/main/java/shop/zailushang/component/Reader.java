@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.entity.Chapter;
 import shop.zailushang.entity.Tao;
 import shop.zailushang.flow.FlowEngine;
-import shop.zailushang.util.RateLimitUnits;
+import shop.zailushang.util.RateLimiter;
 import shop.zailushang.util.ScopedExecutor;
 
 import java.net.URI;
@@ -77,7 +77,7 @@ public interface Reader<T, R> extends Task<T, R> {
                     .thenApplyAsync(Chapter.Chapter4Read::contUrlSuffix, taskExecutor())
                     .thenApplyAsync(contentUriFormatter::formatted, taskExecutor())
                     .whenCompleteAsync((contentUri, _) -> log.info("{} - 执行获取章节内容操作 url => {}", Reader.name(), contentUri), taskExecutor())
-                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimitUnits.DELAY), taskExecutor())
+                    .thenComposeAsync(Task.<String, String>withRateLimit(Reader::read0, RateLimiter.DELAY), taskExecutor())
                     .thenApplyAsync(jsonStr -> new Chapter.Chapter4Select(chapter4Read.bookName(), chapter4Read.chapterName(), chapter4Read.chapterOrdid(), jsonStr), taskExecutor());
         }
     }
