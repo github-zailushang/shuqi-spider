@@ -14,6 +14,7 @@ import java.util.function.Function;
  * 抽象流程：组装多个 Task，形成一条任务链
  */
 @SuppressWarnings("unused")
+@FunctionalInterface
 public interface Flow<T, R> {
 
     // 任务头结点

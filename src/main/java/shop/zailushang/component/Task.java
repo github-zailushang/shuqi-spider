@@ -14,8 +14,8 @@ import java.util.function.Function;
 /*
  * 抽象通用节点
  */
-@FunctionalInterface
 @SuppressWarnings("all")
+@FunctionalInterface
 public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
 
     CompletableFuture<R> execute(T param) throws Exception;
