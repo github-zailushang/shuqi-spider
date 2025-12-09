@@ -94,7 +94,7 @@ public interface Task<T, R> extends Function<T, CompletableFuture<R>> {
                 .thenApplyAsync(before, taskExecutor()) // 参数前置处理
                 .thenApplyAsync(list -> atomicReference.updateAndGet(_ -> list.stream().map(task).toArray(CompletableFuture[]::new)), taskExecutor()) // 并行执行任务
                 .thenComposeAsync(CompletableFuture::allOf, taskExecutor()) // 等待所有任务完成
-                .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(future -> (R) future.join()).toList(), taskExecutor()) // 汇总任务结果
+                .thenApplyAsync(_ -> Arrays.stream(atomicReference.get()).map(CompletableFuture<R>::join).toList(), taskExecutor()) // 汇总任务结果
                 .thenApplyAsync(after, taskExecutor()); // 返回值后置处理
     }
 

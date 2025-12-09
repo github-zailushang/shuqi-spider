@@ -2,7 +2,6 @@ package shop.zailushang.flow;
 
 import lombok.extern.slf4j.Slf4j;
 import shop.zailushang.util.Assert;
-import shop.zailushang.util.ScopedExecutor;
 
 import java.net.http.HttpClient;
 import java.util.Arrays;
@@ -28,7 +27,7 @@ public class FlowEngine implements AutoCloseable {
     // 每个线程默认处理的章节数量
     public static final Integer DEFAULT_CAPACITY = 5;
     // http客户端（使用原生虚拟线程池）
-    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().executor(ScopedExecutor.delegate()).build();
+    public static final HttpClient HTTP_CLIENT = HttpClient.newBuilder().executor(delegate()).build();
     // 单例模式：静态实例对象，使用 volatile 修饰，防止指令重排导致的 NPE 问题
     private static volatile FlowEngine DEFAULT_FLOW_ENGINE;
 

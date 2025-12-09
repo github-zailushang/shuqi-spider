@@ -37,10 +37,10 @@ public class BookCache {
 
     // 获取文件通道
     public static FileChannel getFileChannel(String bookName) {
-        return FILE_CHANNEL_MAP.computeIfAbsent(bookName, _ -> {
+        return FILE_CHANNEL_MAP.computeIfAbsent(bookName, bkName -> {
             try {
                 // 文件夹路径
-                var folderPath = getFolderPath(bookName);
+                var folderPath = getFolderPath(bkName);
                 // 计算合并后的文件总长度（字节）
                 var totalLength = Files.list(folderPath)
                         .map(path -> {
@@ -52,7 +52,7 @@ public class BookCache {
                         })
                         .reduce(0L, Long::sum);
                 // 合并后的目标文件路径 e.g. D:/斗破苍穹/斗破苍穹.txt
-                var targetFileChannel = FileChannel.open(Paths.get(String.format(FILE_PATH_FORMATTER, folderPath, bookName)), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                var targetFileChannel = FileChannel.open(Paths.get(String.format(FILE_PATH_FORMATTER, folderPath, bkName)), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 // 预设置文件总大小，避免重复扩容，提升写入性能
                 targetFileChannel.truncate(totalLength);
                 return targetFileChannel;
