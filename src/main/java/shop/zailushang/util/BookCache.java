@@ -2,11 +2,11 @@ package shop.zailushang.util;
 
 import shop.zailushang.flow.FlowEngine;
 
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,8 +39,13 @@ public class BookCache {
     public static FileChannel getFileChannel(String bookName) {
         return FILE_CHANNEL_MAP.computeIfAbsent(bookName, bkName -> {
             try {
+
                 // 文件夹路径
                 var folderPath = getFolderPath(bkName);
+                // 合并后的目标文件路径 e.g. D:/斗破苍穹/斗破苍穹.txt
+                var targetFilePath = Paths.get(FILE_PATH_FORMATTER.formatted(folderPath, bkName));
+                // 使用 RandomAccessFile 预设文件大小，与 FileChannel 共享文件描述符，此处无需关闭
+                var raf = new RandomAccessFile(targetFilePath.toFile(), "rw");
                 // 计算合并后的文件总长度（字节）
                 var totalLength = Files.list(folderPath)
                         .map(path -> {
@@ -51,11 +56,9 @@ public class BookCache {
                             }
                         })
                         .reduce(0L, Long::sum);
-                // 合并后的目标文件路径 e.g. D:/斗破苍穹/斗破苍穹.txt
-                var targetFileChannel = FileChannel.open(Paths.get(String.format(FILE_PATH_FORMATTER, folderPath, bkName)), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-                // 预设置文件总大小，避免重复扩容，提升写入性能
-                targetFileChannel.truncate(totalLength);
-                return targetFileChannel;
+                // 预设置总文件大小，避免重复扩容，提升写入时性能
+                raf.setLength(totalLength);
+                return raf.getChannel();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
