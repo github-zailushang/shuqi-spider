@@ -39,7 +39,6 @@ public class BookCache {
     public static FileChannel getFileChannel(String bookName) {
         return FILE_CHANNEL_MAP.computeIfAbsent(bookName, bkName -> {
             try {
-
                 // 文件夹路径
                 var folderPath = getFolderPath(bkName);
                 // 合并后的目标文件路径 e.g. D:/斗破苍穹/斗破苍穹.txt
